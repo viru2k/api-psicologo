@@ -22,9 +22,16 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 //Route::apiResource('/padron','Padron\PadronController');
 //Route::get('padron/lista', 'Padron\PadronController@getPadron'); 
 //Route::apiResource('/padron/lista','Padron\PadronController@getPadron');
+Route::name('user-info')->post('generar/password', 'Padron\PadronController@actualizarPassword');  
 Route::name('psicologo')->get('padron/liquidacion/by/psicologo', 'Padron\PadronController@getLiquidacionByPsicologo'); 
 Route::name('psicologo')->get('padron/obra_social', 'Padron\PadronController@getObraSocial'); 
 Route::name('psicologo')->get('padron', 'Padron\PadronController@getPadron'); 
+Route::name('psicologo')->get('token/generar', 'Padron\PadronController@generarTokenValidacion'); 
+
+
+Route::name('psicologo')->post('liquidacion/detalle', 'Padron\PadronController@getLiquidacionDetalleByPsicologo'); 
+Route::name('psicologo')->post('liquidacion/detalle/obrasocial', 'Padron\PadronController@getLiquidacionDetalleObraSocialPagoByPsicologo');  
+
 Route::post('oauth/token','\Laravel\Passport\Http\Controllers\AccessTokenController@issueToken');
 //Auth::routes(['register' => false]);
 

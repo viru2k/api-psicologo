@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB; 
 use Illuminate\Auth\AuthenticationException; 
 use App\Http\Controllers\ApiController;
+use Illuminate\Support\Facades\Hash;
 
 class PadronController extends ApiController
 {
@@ -112,7 +113,7 @@ return response()->json($res, 201);
 public function getLiquidacionNumero()
 {
     $res = DB::select( DB::raw("
-    SELECT id_os_liquidacion, id_os_obra_social, os_liq_numero, os_fecha_desde, os_fecha_hasta, os_cant_ordenes, os_monto_total, os_estado, id_liquidacion FROM os_liq_liquidacion
+    SELECT id_os_liquidacion, id_os_obra_social, os_liq_numero, os_fecha_desde, os_fecha_hasta, os_cant_ordenes, os_monto_total, os_estado, id_liquidacio FROM os_liq_liquidacion
 "));
          
 return response()->json($res, 201);
@@ -124,8 +125,34 @@ public function getLiquidacionByPsicologo(Request $request)
 {
     $mat_matricula =$request->input('mat_matricula');  
     $res = DB::select( DB::raw("
-    SELECT `id_liquidacion_detalle`, `mat_matricula`, `os_liq_bruto`, `os_ing_brutos`, `os_lote_hogar`, `os_gasto_admin`, `os_imp_cheque`, `os_descuentos`, `os_desc_matricula`, `os_desc_fondo_sol`, `os_otros_ing_eg`, `os_liq_neto`, `num_comprobante`, `os_num_ing_bruto`,os_liq_liquidacion_generada.id_liquidacion FROM `os_liq_liquidacion_detalle`, os_liq_liquidacion_generada WHERE os_liq_liquidacion_detalle.id_liquidacion_generada = os_liq_liquidacion_generada.id_liquidacion_generada  AND mat_matricula =  ".$mat_matricula."   
+    SELECT `id_liquidacion_detalle`, `mat_matricula`, `os_liq_bruto`, `os_ing_brutos`, `os_lote_hogar`, `os_gasto_admin`, `os_imp_cheque`, `os_descuentos`, `os_desc_matricula`, `os_desc_fondo_sol`, `os_otros_ing_eg`, `os_liq_neto`, `num_comprobante`, `os_num_ing_bruto`,os_liq_liquidacion_generada.id_liquidacion, os_liq_liquidacion_detalle.num_comprobante, os_liq_liquidacion_detalle.id_liquidacion_generada , os_liq_liquidacion_detalle.os_num_ing_bruto, CONCAT(mat_matricula.mat_apellido,' ',mat_matricula.mat_nombre) as mat_apellido, mat_matricula.mat_domicilio_partcular, mat_matricula.mat_cuit, mat_matricula.mat_ning_bto, os_liq_liquidacion_generada.os_fecha FROM `os_liq_liquidacion_detalle`, os_liq_liquidacion_generada, mat_matricula WHERE os_liq_liquidacion_detalle.id_liquidacion_generada = os_liq_liquidacion_generada.id_liquidacion_generada AND mat_matricula.mat_matricula_psicologo = os_liq_liquidacion_detalle.mat_matricula AND mat_matricula =  ".$mat_matricula."   
     ORDER BY os_liq_liquidacion_generada.id_liquidacion_generada DESC
+"));
+         
+return response()->json($res, 201);
+
+}
+
+
+public function getLiquidacionDetalleByPsicologo(Request $request)
+{
+    $mat_matricula =$request->input('mat_matricula');  
+    $id_liquidacion_generada =$request->input('id_liquidacion_generada');  
+    $res = DB::select( DB::raw("
+    SELECT os_liq_orden.mat_matricula , os_liq_orden.os_cantidad,os_liq_orden.os_precio_sesion, os_liq_orden.os_precio_total,os_obra_social.os_nombre, os_sesion_tipo.os_sesion, os_liq_liquidacion.os_fecha_hasta  FROM os_liq_orden, os_liq_liquidacion, os_obra_social, os_sesion, os_sesion_tipo, os_liq_liquidacion_generada  WHERE  os_liq_orden.os_liq_numero =  os_liq_liquidacion.id_os_liquidacion AND  os_obra_social.id_obra_social = os_liq_orden.id_obra_social   AND os_liq_orden.id_sesion = os_sesion.id_sesion  AND os_sesion.id_sesion_tipo = os_sesion_tipo.id_sesion_tipo AND os_liq_liquidacion.id_liquidacion = os_liq_liquidacion_generada.id_liquidacion_generada  AND  os_liq_orden.mat_matricula =  ".$mat_matricula." AND os_liq_liquidacion_generada.id_liquidacion_generada = ".$id_liquidacion_generada."
+"));
+         
+return response()->json($res, 201);
+
+}
+
+
+
+public function getLiquidacionDetalleObraSocialPagoByPsicologo(Request $request)
+{
+    $id_liquidacion_generada =$request->input('id_liquidacion_generada');  
+    $res = DB::select( DB::raw("
+    SELECT os_obra_social.os_nombre, os_fecha_hasta, os_liq_numero FROM  os_liq_liquidacion, os_obra_social, os_liq_liquidacion_generada  WHERE os_liq_liquidacion.id_os_obra_social = os_obra_social.id_obra_social AND   os_liq_liquidacion.id_liquidacion = os_liq_liquidacion_generada.id_liquidacion_generada AND os_liq_liquidacion.os_estado = 'L' AND os_liq_liquidacion_generada.id_liquidacion_generada  = ".$id_liquidacion_generada."
 "));
          
 return response()->json($res, 201);
@@ -181,6 +208,69 @@ return response()->json($res, 201);
         
         AND   ".$consulta."  LIKE '".$valor."%'
     "));
+             
+    return response()->json($res, 201);
+      
+    }
+
+
+
+
+    
+
+    /*** GENERO EL TOKEN DE TODOS LOS PSICOLOGOS  */
+    public function actualizarPassword(Request $request)
+    {
+       
+
+        $result = DB::select( DB::raw(" 
+         SELECT * FROM  users WHERE token_autorizacion = :token_autorizacion")
+        , array(
+            'token_autorizacion' => $request->input('token_autorizacion')
+        ));
+
+    $password =$request->input('password');
+    $ret_password=bcrypt($password);
+
+    foreach ($result as $res) {
+
+        $hashed_random_password = Hash::make(str_random(8));
+
+        $update = DB::table('users')->limit(1) 
+        ->where('id',  $res->id)
+        ->update( [ 
+         'password' => $ret_password,       
+         'updated_at' => date("Y-m-d H:i:s")     ]); 
+
+    }
+             
+    return response()->json($res, 201);
+      
+    }
+
+
+    
+
+    /*** GENERO EL TOKEN DE TODOS LOS PSICOLOGOS  */
+    public function generarTokenValidacion()
+    {
+       
+
+        $result = DB::select( DB::raw("
+        SELECT * FROM  users
+    "));
+
+    foreach ($result as $res) {
+
+        $hashed_random_password = Hash::make(str_random(8));
+
+        $update = DB::table('users')
+        ->where('id',  $res->id)
+        ->update( [ 
+         'token_autorizacion' => $hashed_random_password,       
+         'updated_at' => date("Y-m-d H:i:s")     ]); 
+
+    }
              
     return response()->json($res, 201);
       
