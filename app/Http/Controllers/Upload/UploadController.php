@@ -52,22 +52,27 @@ class UploadController extends Controller
 
     public function showUploadFile(Request $request) {
 
-$fecha = date("Y-m-d-Hi");
+        
+$matricula = $request->input('id');
+$fecha = date("Y-m-d-H-i-s");
 $allowedfileExtension=['pdf','jpg','png','docx','pdf'];
 $files = $request->file('images');
 foreach($files as $file){
 $filename = $file->getClientOriginalName();
 $extension = $file->getClientOriginalExtension();
 $check=in_array($extension,$allowedfileExtension);
-$destinationPath = 'uploads/'.$fecha;
+$parts = explode('/', $request->url());
+ $last = end($parts);
+$destinationPath = 'uploads/facturas/'.$last.'-'.$fecha;
 $without_extension = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+
 
 
 $file->move($destinationPath,$filename);
 
 }
 
-        return response()->json("Upload Successfully", 201);
+        return response()->json("Upload Successfully ", 201);
      }
 
 

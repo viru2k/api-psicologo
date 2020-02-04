@@ -138,11 +138,28 @@ public function getLiquidacionDetalleByPsicologo(Request $request)
 {
     $mat_matricula =$request->input('mat_matricula');  
     $id_liquidacion_generada =$request->input('id_liquidacion_generada');  
+    //echo $id_liquidacion_generada;
+    //echo  $mat_matricula;
     $res = DB::select( DB::raw("
     SELECT os_liq_orden.mat_matricula , os_liq_orden.os_cantidad,os_liq_orden.os_precio_sesion, os_liq_orden.os_precio_total,os_obra_social.os_nombre, os_sesion_tipo.os_sesion, os_liq_liquidacion.os_fecha_hasta  FROM os_liq_orden, os_liq_liquidacion, os_obra_social, os_sesion, os_sesion_tipo, os_liq_liquidacion_generada  WHERE  os_liq_orden.os_liq_numero =  os_liq_liquidacion.id_os_liquidacion AND  os_obra_social.id_obra_social = os_liq_orden.id_obra_social   AND os_liq_orden.id_sesion = os_sesion.id_sesion  AND os_sesion.id_sesion_tipo = os_sesion_tipo.id_sesion_tipo AND os_liq_liquidacion.id_liquidacion = os_liq_liquidacion_generada.id_liquidacion_generada  AND  os_liq_orden.mat_matricula =  ".$mat_matricula." AND os_liq_liquidacion_generada.id_liquidacion_generada = ".$id_liquidacion_generada."
 "));
          
 return response()->json($res, 201);
+
+}
+
+
+public function actualizarCorreo(Request $request)
+{
+    $mat_matricula =$request->input('mat_matricula');  
+    $mat_email =$request->input('mat_email');  
+    $id = DB::table('mat_matricula') 
+    ->where('mat_matricula_psicologo', $mat_matricula) ->limit(1) 
+    ->update( [     
+     'mat_email' => $mat_email
+    	]); 
+         
+return response()->json($id, 201);
 
 }
 
@@ -201,7 +218,7 @@ return response()->json($res, 201);
         $valor =$request->input('valor');
 
         $res = DB::select( DB::raw("
-        SELECT mat_matricula.mat_apellido, mat_matricula.mat_nombre, os_obra_social.os_nombre , mat_matricula_psicologo
+        SELECT mat_matricula.mat_apellido, mat_matricula.mat_nombre, os_obra_social.os_nombre , mat_matricula_psicologo, mat_domicilio_laboral, mat_tel_laboral
         FROM mat_matricula, matricula_obra_social, os_obra_social 
         WHERE  matricula_obra_social.mat_matricula = mat_matricula.mat_matricula_psicologo and matricula_obra_social.obra_social_id = os_obra_social.id_obra_social 
         
@@ -220,9 +237,7 @@ return response()->json($res, 201);
 
     /*** GENERO EL TOKEN DE TODOS LOS PSICOLOGOS  */
     public function actualizarPassword(Request $request)
-    {
-       
-
+    {       
         $result = DB::select( DB::raw(" 
          SELECT * FROM  users WHERE token_autorizacion = :token_autorizacion")
         , array(
@@ -232,19 +247,16 @@ return response()->json($res, 201);
     $password =$request->input('password');
     $ret_password=bcrypt($password);
 
-    foreach ($result as $res) {
-
-        $hashed_random_password = Hash::make(str_random(8));
-
         $update = DB::table('users')->limit(1) 
-        ->where('id',  $res->id)
+        ->where('id',  $result[0]->id)
         ->update( [ 
          'password' => $ret_password,       
          'updated_at' => date("Y-m-d H:i:s")     ]); 
 
-    }
+    
+
              
-    return response()->json($res, 201);
+    return response()->json($update, 201);
       
     }
 

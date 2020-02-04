@@ -22,10 +22,11 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 //Route::apiResource('/padron','Padron\PadronController');
 //Route::get('padron/lista', 'Padron\PadronController@getPadron'); 
 //Route::apiResource('/padron/lista','Padron\PadronController@getPadron');
-Route::name('user-info')->post('generar/password', 'Padron\PadronController@actualizarPassword');  
-Route::name('psicologo')->get('padron/liquidacion/by/psicologo', 'Padron\PadronController@getLiquidacionByPsicologo'); 
+Route::name('user-info')->get('generar/password', 'Padron\PadronController@actualizarPassword');  
+Route::name('psicologo')->get('liquidacion/by/psicologo', 'Padron\PadronController@getLiquidacionByPsicologo'); 
 Route::name('psicologo')->get('padron/obra_social', 'Padron\PadronController@getObraSocial'); 
 Route::name('psicologo')->get('padron', 'Padron\PadronController@getPadron'); 
+Route::name('psicologo')->get('padron/correo', 'Padron\PadronController@actualizarCorreo'); 
 Route::name('psicologo')->get('token/generar', 'Padron\PadronController@generarTokenValidacion'); 
 
 
@@ -36,8 +37,16 @@ Route::post('oauth/token','\Laravel\Passport\Http\Controllers\AccessTokenControl
 //Auth::routes(['register' => false]);
 
 
+Route::name('psicologo')->get('informacion/publica', 'Padron\LandingController@getinformacionPublico'); 
+Route::name('psicologo')->get('informacion/privada', 'Padron\LandingController@getinformacionPrivado'); 
 
 
+/** FILE MANAGER **/
+Route::name('archivos')->post('/multiuploads/estudios/{name}', 'Upload\UploadController@showUploadFile');
+Route::name('archivos')->post('/multiuploads/estudios/datos', 'Upload\UploadController@showUploadFileDatos');
+Route::name('archivos')->post('/multiuploads/texto', 'Files\FilesController@createTestTextFile'); 
+Route::name('archivos')->post('/multiuploads/texto/cirugia', 'Files\FilesController@createTestTextFileCirugia'); 
+Route::name('archivos')->get('/multiuploads/estudios/verimagen', 'Upload\UploadController@getEstudioImagenes'); 
 
 
 
