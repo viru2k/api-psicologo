@@ -31,18 +31,22 @@ Route::name('psicologo')->get('token/generar', 'Padron\PadronController@generarT
 
 
 Route::name('psicologo')->post('liquidacion/detalle', 'Padron\PadronController@getLiquidacionDetalleByPsicologo'); 
-Route::name('psicologo')->post('liquidacion/detalle/obrasocial', 'Padron\PadronController@getLiquidacionDetalleObraSocialPagoByPsicologo');  
+Route::name('psicologo')->post('liquidacion/detalle/obrasocial', 'Padron\PadronController@getLiquidacionDetalleObraSocialPagoByPsicologo');   
 
 Route::post('oauth/token','\Laravel\Passport\Http\Controllers\AccessTokenController@issueToken');
+
 //Auth::routes(['register' => false]);
 
 
 Route::name('psicologo')->get('informacion/publica', 'Padron\LandingController@getinformacionPublico'); 
 Route::name('psicologo')->get('informacion/privada', 'Padron\LandingController@getinformacionPrivado'); 
+Route::name('psicologo')->get('informacion/privada/facturacion/by/matricula', 'Padron\PadronController@getFacturaByMatricula'); 
+Route::name('psicologo')->get('informacion/privada/facturacion/by/idliquidacion', 'Padron\PadronController@getFacturaByLiquidacion'); 
+Route::name('psicologo')->get('liquidacion/liquidacion/generada', 'Padron\PadronController@getLiquidacionGenerada'); 
 
 
 /** FILE MANAGER **/
-Route::name('archivos')->post('/multiuploads/estudios/{name}', 'Upload\UploadController@showUploadFile');
+Route::name('archivos')->post('/multiuploads/estudios/{mat_matricula}/{id_liquidacion_detalle}/{id_liquidacion}', 'Upload\UploadController@showUploadFile');
 Route::name('archivos')->post('/multiuploads/estudios/datos', 'Upload\UploadController@showUploadFileDatos');
 Route::name('archivos')->post('/multiuploads/texto', 'Files\FilesController@createTestTextFile'); 
 Route::name('archivos')->post('/multiuploads/texto/cirugia', 'Files\FilesController@createTestTextFileCirugia'); 

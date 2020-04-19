@@ -101,6 +101,7 @@ class UserController extends ApiController
         'users.name',
         'users.nombreyapellido',
         'users.email',  
+        'users.admin',
         'users.user_modulo_id'    
         )
             ->where('users.email','=',$email)                                   

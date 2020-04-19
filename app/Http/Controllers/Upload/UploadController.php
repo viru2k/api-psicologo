@@ -48,32 +48,61 @@ class UploadController extends Controller
     return response()->json($request, 201);
     }
 
-
+/* -------------------------------------------------------------------------- */
+/*              subida de archivos  y asociacion a base de datos              */
+/* -------------------------------------------------------------------------- */
 
     public function showUploadFile(Request $request) {
 
-        
-$matricula = $request->input('id');
-$fecha = date("Y-m-d-H-i-s");
-$allowedfileExtension=['pdf','jpg','png','docx','pdf'];
-$files = $request->file('images');
-foreach($files as $file){
-$filename = $file->getClientOriginalName();
-$extension = $file->getClientOriginalExtension();
-$check=in_array($extension,$allowedfileExtension);
-$parts = explode('/', $request->url());
- $last = end($parts);
-$destinationPath = 'uploads/facturas/'.$last.'-'.$fecha;
-$without_extension = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                    
+         
+        $parts = explode('/', $request->url());
+       //  var_dump($parts);
+         $mat_matricula =  $parts[8];
+         $liq_liquidacion_detalle_id =  $parts[9];
+         $id_liquidacion =  $parts[10];
+       //  echo $mat_matricula;
+       $files = $request->file('images');
+     
+       
+         $fecha = date("Y-m-d-H-i-s");
+         $allowedfileExtension=['pdf','jpg','png','docx','pdf'];
+         $files = $request->file('images');
+         foreach($files as $file){
+         $filename = $file->getClientOriginalName();
+     //    echo $filename;
+         $extension = $file->getClientOriginalExtension();
+     //    echo $extension;
+         $check=in_array($extension,$allowedfileExtension);
+         $parts = explode('/', $request->url());    
+          $last = end($parts);
+      //   echo $last;
+         $destinationPath = 'uploads/'.$id_liquidacion.'/'.$mat_matricula.$last.'-'.$fecha;
+         $without_extension = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+         
 
 
 
-$file->move($destinationPath,$filename);
 
-}
+            $file->move($destinationPath,$filename);
 
-        return response()->json("Upload Successfully ", 201);
+            $id =    DB::table('factura_liquidacion')->insertGetId([              
+                'mat_matricula' => $mat_matricula, 
+                'liq_liquidacion_detalle_id' => $liq_liquidacion_detalle_id, 
+                'id_liquidacion' => $id_liquidacion, 
+                 'url' => $destinationPath.'/'.$filename,
+                 'fecha_subida' => date("Y-m-d H:i:s")                 
+            ]);        
+
+            } 
+
+        return response()->json("Upload Successfully ", 201); 
      }
+
+
+
+
+
 
 
      public function showUploadFileDatos(Request $request){
@@ -82,7 +111,7 @@ $file->move($destinationPath,$filename);
         $subcarpeta = 
         $tmp_fecha = str_replace('/', '-', $t[0]["fecha_estudio"]);
          $fecha_estudio =  date('Y-m-d H:i', strtotime($tmp_fecha));
-    $id =    DB::table('estudio')->insertGetId(
+     $id =    DB::table('estudio')->insertGetId(
          ['estudio' => $t[0]["estudio"],
         'paciente_id' => $t[0]["paciente_id"],
          'medico_id' => $t[0]["medico_id"],

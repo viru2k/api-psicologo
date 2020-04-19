@@ -27,7 +27,7 @@ public function __construct()
     //$this->middleware('auth:api')->except('index','getPadron');
    // $this->middleware('auth:api')->except(['index', 'show','getPadron']);
    // $this->middleware('auth:api', ['except' => ['index', 'getPadron']]); 
-   $this->middleware('auth:api', ['only' => ['getLiquidacionByPsicologo', 'getLiquidacionNumero']]); 
+   $this->middleware('auth:api', ['only' => ['getLiquidacionByPsicologo', 'getLiquidacionNumero','getFacturaByMatricula','getFacturaByLiquidacion','getLiquidacion']]); 
 
 }
     /**
@@ -175,6 +175,40 @@ public function getLiquidacionDetalleObraSocialPagoByPsicologo(Request $request)
 return response()->json($res, 201);
 
 }
+
+public function getFacturaByMatricula(Request $request)
+{
+    $mat_matricula =$request->input('mat_matricula');  
+    $res = DB::select( DB::raw("
+    SELECT `id`, `mat_matricula`, `liq_liquidacion_detalle_id`, `fecha_subida`, `url`, id_liquidacion, CONCAT(mat_matricula.mat_apellido, ' ', mat_matricula.mat_nombre) as matricula_psicologo FROM `factura_liquidacion`, mat_matricula WHERE factura_liquidacion.mat_matricula = mat_matricula.mat_matricula_psicologo AND mat_matricula= ".$mat_matricula."
+"));
+         
+return response()->json($res, 201);
+
+}
+
+public function getFacturaByLiquidacion(Request $request)
+{
+    $id_liquidacion =$request->input('id_liquidacion');  
+    $res = DB::select( DB::raw("
+    SELECT `id`, `mat_matricula`, `liq_liquidacion_detalle_id`, `fecha_subida`, `url`, id_liquidacion, CONCAT(mat_matricula.mat_apellido, ' ', mat_matricula.mat_nombre) as matricula_psicologo FROM `factura_liquidacion`, mat_matricula WHERE factura_liquidacion.mat_matricula = mat_matricula.mat_matricula_psicologo AND id_liquidacion= ".$id_liquidacion."
+"));
+         
+return response()->json($res, 201);
+
+}
+
+
+public function getLiquidacionGenerada()
+{    
+    $res = DB::select( DB::raw("
+    SELECT `id_liquidacion_generada`, `id_liquidacion`, `os_fecha`, `os_liq_estado` FROM `os_liq_liquidacion_generada` ORDER BY id_liquidacion_generada DESC
+"));
+         
+return response()->json($res, 201);
+
+}
+
     /**
      * Show the form for editing the specified resource.
      *

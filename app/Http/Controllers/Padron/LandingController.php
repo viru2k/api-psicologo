@@ -24,7 +24,7 @@ class LandingController extends ApiController
     //echo "padron";
 
     $res = DB::select( DB::raw("
-    SELECT id, titulo, descripcion, tiene_enlace, enlace, tiene_imagen, imagen, es_youtube, enlace_video_youtube, es_video, enlace_video, estado, pagina, created_at, updated_at , es_curso 
+    SELECT id, titulo, descripcion, tiene_enlace, enlace, tiene_imagen, imagen, es_youtube, enlace_video_youtube, es_video, enlace_video, estado, pagina, created_at, updated_at , es_curso ,es_importante
     FROM informa_privado WHERE estado = 'ACTIVO' ORDER BY fecha_creacion DESC
 "));
          
@@ -37,7 +37,7 @@ public function getinformacionPublico()
     //echo "padron";
 
     $res = DB::select( DB::raw("
-    SELECT id, titulo, descripcion, tiene_enlace, enlace, tiene_imagen, imagen, es_youtube, enlace_video_youtube, es_video, enlace_video, estado, pagina,created_at, updated_at 
+    SELECT id, titulo, descripcion, tiene_enlace, enlace, tiene_imagen, imagen, es_youtube, enlace_video_youtube, es_video, enlace_video, estado, pagina ,es_importante, created_at, updated_at 
     FROM informa_publico WHERE estado = 'ACTIVO' ORDER BY fecha_creacion DESC
 "));
          
