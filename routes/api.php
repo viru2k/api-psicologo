@@ -53,6 +53,17 @@ Route::name('archivos')->post('/multiuploads/texto/cirugia', 'Files\FilesControl
 Route::name('archivos')->get('/multiuploads/estudios/verimagen', 'Upload\UploadController@getEstudioImagenes'); 
 
 
+/* -------------------------------------------------------------------------- */
+/*                                  NOTICIAS                                  */
+/* -------------------------------------------------------------------------- */
+
+Route::name('archivos')->post('/noticia/publica', 'Padron\LandingController@setNoticiaPublico'); 
+Route::name('archivos')->put('/noticia/publica/{id}',  'Padron\LandingController@putNoticiaPublico'); 
+
+Route::name('archivos')->post('/noticia/privada', 'Padron\LandingController@setNoticiaPrivado'); 
+Route::name('archivos')->put('/noticia/privada/{id}',  'Padron\LandingController@putNoticiaPrivado'); 
+
+
 
 
 
