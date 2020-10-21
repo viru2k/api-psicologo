@@ -48,8 +48,7 @@ class MatriculaController extends ApiController
   }
 
 
-  public function setMatricula(Request $request)
-  {
+  public function setMatricula(Request $request) {
 
     $tmp_fecha = str_replace('/', '-', $request->mat_fecha_nacimiento);
     $mat_fecha_nacimiento =  date('Y-m-d', strtotime($tmp_fecha));  
@@ -103,8 +102,7 @@ class MatriculaController extends ApiController
   }
 
   
-  public function putMatricula(Request $request, $id)
-  {
+  public function putMatricula(Request $request, $id){
 
     $tmp_fecha = str_replace('/', '-', $request->input('mat_fecha_nacimiento'));
     $mat_fecha_nacimiento =  date('Y-m-d', strtotime($tmp_fecha));   
