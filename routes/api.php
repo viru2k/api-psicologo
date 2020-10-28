@@ -48,6 +48,7 @@ Route::name('psicologo')->post('matricula', 'Matricula\MatriculaController@setMa
 Route::name('psicologo')->delete('matricula/{id}', 'Matricula\MatriculaController@borrarMatriculaObraSocial');
 Route::name('psicologo')->post('matricula/obra/social/add/{id}', 'Matricula\MatriculaController@setMatriculaObraSocial'); 
 
+Route::name('paciente')->get('paciente/by/condicion', 'Matricula\MatriculaController@getPacienteByCondicion'); 
 
 
 /* -------------------------------------------------------------------------- */
@@ -59,18 +60,31 @@ Route::name('psicologo')->post('matricula/obra/social/add/{id}', 'Matricula\Matr
 Route::name('obra-social')->get('obra/social', 'ObraSocial\ObraSocialController@getObraSocial'); 
 Route::name('obra-social')->put('obra/social/{id}',  'ObraSocial\ObraSocialController@putObraSocial'); 
 Route::name('obra-social')->post('obra/social', 'ObraSocial\ObraSocialController@setObraSocial');
+Route::name('obra-social')->get('obra/social/convenio', 'ObraSocial\ObraSocialController@getConvenioByObraSocial');
 
 /* -------------------------------------------------------------------------- */
 /*                                   COBROS                                   */
 /* -------------------------------------------------------------------------- */
+Route::name('concepto')->get('concepto', 'Cobro\CobroController@getConcepto'); 
+Route::name('concepto')->post('concepto',  'Cobro\CobroController@setConcepto'); 
+Route::name('concepto')->put('concepto/{id}',  'Cobro\CobroController@putConcepto'); 
 
 Route::name('cobros')->get('cobro/by/matricula', 'Cobro\CobroController@getDeudaByMatricula'); 
 Route::name('cobros')->get('cobro/by/matricula/estado', 'Cobro\CobroController@getDeudaByMatriculaAndEstado'); 
 Route::name('cobros')->get('cobro/by/matricula/plan', 'Cobro\CobroController@getDeudaByPlanAndMatricula'); 
 Route::name('cobros')->get('cobro/by/matricula/by/dates', 'Cobro\CobroController@getDeudaBydMatriculaBetweenDates');  
 Route::name('cobros')->get('cobro/plan', 'Cobro\CobroController@getPlanes');
-Route::name('cobros')->put('cobro/by/matricula/{id}',  'Cobro\CobroController@putDeuda'); 
+Route::name('cobros')->post('cobro/by/matricula/actualizar',  'Cobro\CobroController@putDeuda'); 
 Route::name('cobros')->post('cobro/by/matricula', 'Cobro\CobroController@setDeuda');
+
+/* -------------------------------------------------------------------------- */
+/*                                 LIQUIDACION                                */
+/* -------------------------------------------------------------------------- */
+
+
+Route::name('liquidacion')->get('liquidacion/orden/by/estado/matricula', 'Cobro\CobroController@getLiquidacionByMatriculaAndEstado'); 
+Route::name('liquidacion')->post('iquidacion/orden',  'Cobro\CobroController@setOrden'); 
+Route::name('liquidacion')->put('iquidacion/orden/{id}',  'Cobro\CobroController@putOrden'); 
 
 
 

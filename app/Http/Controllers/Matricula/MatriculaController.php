@@ -188,5 +188,24 @@ class MatriculaController extends ApiController
     return response()->json("ok", "201"); 
 //echo $id;
 }
+
+
+
+public function getPacienteByCondicion(Request $request)
+{      
+  $pac_dni =  $request->input('pac_dni');  
+  $condicion =  $request->input('condicion');  
+
+  if ( $condicion === 'dni'){
+    $res = DB::select( DB::raw("SELECT `id_paciente`, `pac_nombre`, `pac_sexo`, `pac_dni`, `pac_diagnostico` FROM `pac_paciente` WHERE  pac_dni LIKE '%".$pac_dni."%'
+    "));
+  }
+  if ( $condicion === 'apellido'){
+    $res = DB::select( DB::raw("SELECT `id_paciente`, `pac_nombre`, `pac_sexo`, `pac_dni`, `pac_diagnostico` FROM `pac_paciente` WHERE  pac_nombre LIKE '%".$pac_dni."%'
+    "));
+  }
+
+      return response()->json($res, "200");
+}
   
 }

@@ -11,7 +11,8 @@ class ObraSocialController extends ApiController
 {
     public function getObraSocial()
     {      
-      $res = DB::select( DB::raw("SELECT `id`, `nombre`, `descripcion`, `es_habilitada`, `created_at`, `updated_at` FROM `obra_social` WHERE  es_habilitada = 'S'
+      
+      $res = DB::select( DB::raw("SELECT `id`, `os_nombre`, `os_capitalizada`, `mat_obra_social`, `es_habilitada` FROM `os_obra_social` WHERE  es_habilitada = 'S'
       "));
           return response()->json($res, "200");
     }
@@ -19,15 +20,12 @@ class ObraSocialController extends ApiController
     public function setObraSocial(Request $request)
     {
   
-
-  
-      $id =    DB::table('obra_social')->insertGetId([
+      $id =    DB::table('os_obra_social')->insertGetId([
         
-        'nombre' => $request->nombre,         
-        'descripcion' => $request->descripcion,            
-        'es_habilitada' => $request->es_habilitada,
-        'updated_at' => date("Y-m-d H:i:s")  ,
-        'created_at' => date("Y-m-d H:i:s")  
+        'os_nombre' => $request->os_nombre,         
+        'os_capitalizada' => $request->os_capitalizada,            
+        'mat_obra_social' => $request->mat_obra_social,
+        'es_habilitada' => $request->es_habilitada
         
 
     ]);    
@@ -41,16 +39,28 @@ class ObraSocialController extends ApiController
      
   
   
-      $res =  DB::table('obra_social')
+      $res =  DB::table('os_obra_social')
       ->where('id', $id)
       ->update([
-        'nombre' => $request->input('nombre'),        
-        'descripcion' => $request->input('descripcion'),
-        'es_habilitada' => $request->input('es_habilitada'),
-        'updated_at' => date("Y-m-d H:i:s")  
+        'os_nombre' => $request->input('os_nombre'),        
+        'os_capitalizada' => $request->input('os_capitalizada'),
+        'mat_obra_social' => $request->input('mat_obra_social'),
+        'es_habilitada' => $request->input('es_habilitada')
         ]);
         
         return response()->json($res, "200");
+    }
+
+    public function getConvenioByObraSocial(Request $request)
+    {      
+        $obra_social_id = $request->input('obra_social_id');        
+      $res = DB::select( DB::raw("SELECT os_obra_social.id , os_nombre, es_habilitada, os_sesion.id_sesion, os_sesion.id_precio, os_sesion.os_sesion_mes, os_sesion.os_sesion_anual, os_sesion_tipo.os_sesion, os_sesion_tipo.os_sesion_codigo 
+      FROM `os_obra_social`, os_sesion, os_sesion_tipo 
+      WHERE os_sesion.id_obra_social = os_obra_social.id AND os_sesion.id_sesion_tipo = os_sesion_tipo.id_sesion_tipo
+      AND os_obra_social.id = :obra_social_id
+      "),array('obra_social_id' => $obra_social_id));
+      
+          return response()->json($res, "200");
     }
   
 }

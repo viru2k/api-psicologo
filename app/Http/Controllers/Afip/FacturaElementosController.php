@@ -127,6 +127,7 @@ $factura_encabezado_id= DB::table('factura_encabezado')->insertGetId([
     ]);        
 
     foreach ($request->facturaElectronicaRenglon as $res) {
+        
         DB::table('factura_renglon')->insertGetId([    
             'factura_id' => $factura_encabezado_id,        
             'descripcion' => $res["descripcion"],
@@ -138,6 +139,28 @@ $factura_encabezado_id= DB::table('factura_encabezado')->insertGetId([
             'total_sin_iva' => $res["total_sin_iva"],
             'total_renglon' => $res["total_renglon"]
         ]);    
+
+        // REALIZAR COBRO
+
+        $tmp_fecha = str_replace('/', '-', $res["mat_fecha_pago"]);
+        $mat_fecha_pago =  date('Y-m-d', strtotime($tmp_fecha));   
+        $tmp_fecha = str_replace('/', '-',$res["mat_fecha_vencimiento"]);
+        $mat_fecha_vencimiento =  date('Y-m-d', strtotime($tmp_fecha));   
+       
+        $res =  DB::table('mat_pago_historico')
+        ->where('id_pago_historico', $res["id_pago_historico"])
+        ->update([
+          'mat_fecha_pago' => $mat_fecha_pago,
+          'mat_monto' => $res["total_renglon"],
+          //'mat_monto_cobrado' => $request->input('mat_monto_cobrado'),
+          //'mat_num_cuota' => $res["mat_fecha_pago"],
+          'mat_descripcion' => $res["descripcion"],        
+          //'id_concepto' => $res["mat_fecha_pago"] $request->input('id_concepto'),
+         // 'mat_tipo_pago' => $res["mat_fecha_pago"] $request->input('mat_tipo_pago'),
+          'mat_estado' =>  'P',
+          'id_usuario' => $res["usuario_id"]
+          ]);
+
     }
     
     return response()->json($numero_recibo, 201);
