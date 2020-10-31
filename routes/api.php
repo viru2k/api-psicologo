@@ -82,9 +82,9 @@ Route::name('cobros')->post('cobro/by/matricula', 'Cobro\CobroController@setDeud
 /* -------------------------------------------------------------------------- */
 
 
-Route::name('liquidacion')->get('liquidacion/orden/by/estado/matricula', 'Cobro\CobroController@getLiquidacionByMatriculaAndEstado'); 
-Route::name('liquidacion')->post('iquidacion/orden',  'Cobro\CobroController@setOrden'); 
-Route::name('liquidacion')->put('iquidacion/orden/{id}',  'Cobro\CobroController@putOrden'); 
+Route::name('liquidacion')->get('liquidacion/orden/by/estado/matricula', 'Liquidacion\LiquidacionController@getLiquidacionByMatriculaAndEstado'); 
+Route::name('liquidacion')->post('liquidacion/orden',  'Liquidacion\LiquidacionController@setOrden'); 
+Route::name('liquidacion')->put('liquidacion/orden/{id}',  'Liquidacion\LiquidacionController@putOrden'); 
 
 
 

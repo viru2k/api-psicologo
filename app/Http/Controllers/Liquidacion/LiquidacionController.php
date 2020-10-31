@@ -23,7 +23,7 @@ class LiquidacionController extends ApiController
    WHERE os_liq_orden.mat_matricula = mat_matricula.mat_matricula_psicologo  
    AND os_liq_orden.id_obra_social = os_obra_social.id AND os_liq_orden.id_sesion = os_sesion.id_sesion 
    AND os_sesion.id_sesion_tipo = os_sesion_tipo.id_sesion_tipo AND os_liq_orden.id_paciente = pac_paciente.id_paciente 
-   AND mat_matricula.mat_matricula_psicologo = :mat_matricula AND os_estado_liquidacion = :estado
+   AND mat_matricula.mat_matricula_psicologo = :mat_matricula AND os_estado_liquidacion = :estado ORDER BY id_os_liq_orden DESC
     "),array('mat_matricula' => $mat_matricula,
                'estado' => $estado));
       
@@ -32,23 +32,23 @@ class LiquidacionController extends ApiController
 
   public function setOrden(Request $request) {
 
-    $tmp_fecha = str_replace('/', '-', $request->input('os_fecha'));
+    $tmp_fecha = str_replace('/', '-', $request->fecha);
     $os_fecha =  date('Y-m-d', strtotime($tmp_fecha));   
 
 
     $id =    DB::table('os_liq_orden')->insertGetId([
       
       'mat_matricula' => $request->mat_matricula, 
-      'id_obra_social' => $id_obra_social,    
-      'id_sesion' => $id_sesion,    
-      'id_paciente' => $request->id_paciente,
+      'id_obra_social' => $request->obra_social_id,    
+      'id_sesion' => $request->sesion_id,    
+      'id_paciente' => $request->paciente_id,
       'os_fecha' => $os_fecha,    
-      'os_cantidad' => $request->os_cantidad,    
-      'os_precio_sesion' => $request->os_precio_sesion,    
-      'os_precio_total' => $request->os_precio_total,    
-      'os_estado_liquidacion' => $request->os_estado_liquidacion,    
-      'os_liq_numero' => $request->os_liq_numero,    
-      'os_liq_fecha_presentacion' => $request->os_liq_fecha_presentacion    
+      'os_cantidad' => $request->cantidad,    
+      'os_precio_sesion' => $request->precio_sesion,    
+      'os_precio_total' => $request->precio_total,    
+      'os_estado_liquidacion' => $request->estado_liquidacion,    
+      'os_liq_numero' => $request->liq_numero    
+      //'os_liq_fecha_presentacion' => $request->os_liq_fecha_presentacion    
     
   ]);    
     return response()->json($id, "200");  

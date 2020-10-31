@@ -23,8 +23,12 @@ class MatriculaController extends ApiController
   public function getMatricula(Request $request)
   {      
     $matricula_id =  $request->input('matricula_id');  
-    $res = DB::select( DB::raw("SELECT id, mat_matricula_psicologo_nacional, mat_matricula_psicologo, mat_apellido, mat_nombre, mat_sexo, mat_localidad, mat_domicilio_particular, mat_domicilio_laboral, mat_tel_particular, mat_tel_laboral, mat_lugar_laboral, mat_email, mat_tipo_dni, mat_dni, mat_num_cuenta, mat_fecha_nacimiento, mat_fecha_egreso, mat_fecha_matricula, mat_estado_matricula, mat_especialidad, mat_orientacion, mat_abordaje, mat_excento, mat_cuit, mat_ning_bto, mat_banco, mat_cbu, mat_nro_folio, mat_nro_acta, mat_fallecido, mat_historial, mat_numero_superintendecia, mat_n_superintendencia_fecha_vencimiento, debito_adherido, debito_sucursal, debito_numero_cuenta, debito_codigo_concepto, debito_codigo_cliente, debito_codigo_abonado, debito_digito_verificador 
-    FROM mat_matricula WHERE AND mat_matricula.id = :matricula_id
+    $res = DB::select( DB::raw("SELECT id, mat_matricula_psicologo_nacional, mat_matricula_psicologo, mat_apellido, mat_nombre, mat_sexo, mat_localidad, mat_domicilio_particular, mat_domicilio_laboral, mat_tel_particular, mat_tel_laboral, 
+    mat_lugar_laboral, mat_email, mat_tipo_dni, mat_dni, mat_num_cuenta, mat_fecha_nacimiento, mat_fecha_egreso, mat_fecha_matricula, mat_estado_matricula, 
+    mat_especialidad, mat_orientacion, mat_abordaje, mat_excento, mat_cuit, mat_ning_bto, mat_banco, mat_cbu, mat_nro_folio, mat_nro_acta, mat_fallecido, mat_historial, 
+    mat_numero_superintendecia, mat_n_superintendencia_fecha_vencimiento, debito_adherido, debito_sucursal, debito_numero_cuenta, debito_codigo_concepto, debito_codigo_cliente, 
+    debito_codigo_abonado, debito_digito_verificador 
+    FROM mat_matricula WHERE  mat_matricula.mat_matricula_psicologo = :matricula_id
     "),
      array(                       
       'matricula_id' => $matricula_id
@@ -39,7 +43,7 @@ class MatriculaController extends ApiController
 
     $res = DB::select( DB::raw("SELECT mat_matricula.id, mat_matricula_psicologo_nacional, mat_matricula_psicologo, mat_apellido, mat_nombre, mat_sexo,mat_matricula.mat_tipo_dni,  mat_matricula.mat_dni, mat_matricula_obra_social.id as mat_matricula_obra_social_id, mat_matricula_obra_social.obra_social_id,  obra_social.nombre  as obra_social_nombre
     FROM mat_matricula, mat_matricula_obra_social, obra_social 
-    WHERE mat_matricula.id = mat_matricula_obra_social.matricula_id AND obra_social.id = mat_matricula_obra_social.obra_social_id AND mat_matricula.id = :matricula_id
+    WHERE mat_matricula.id = mat_matricula_obra_social.matricula_id AND obra_social.id = mat_matricula_obra_social.obra_social_id AND mat_matricula.mat_matricula_psicologo = :matricula_id
     "),
      array(                       
       'matricula_id' => $matricula_id
