@@ -19,18 +19,22 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::name('user-info')->get('user/password', 'User\UserController@getPassword'); 
+
 Route::name('user-info')->get('user/info/menu', 'User\UserController@getUserDataAndMenu'); 
 Route::name('user-info')->get('user/menu', 'User\UserController@getMenu');
-Route::name('user-info')->post('user/menu/add/{id}', 'User\UserController@agregarMenuUsuario');
+
 Route::name('user-info')->delete('user/menu/{id}', 'User\UserController@borrarMenuUsuario');
 Route::name('user-info')->get('user/listado', 'User\UserController@getUsuarios');
+
+Route::resource('user', 'User\UserController');
+
+Route::group(['middleware' => 'admin'], function () {
+Route::name('user-info')->get('user/password', 'User\UserController@getPassword'); 
 Route::name('user-info')->post('user/crear', 'User\UserController@CrearUsuario');
 Route::name('user-info')->put('user/editar/{id}', 'User\UserController@EditarUsuario');
 Route::name('user-info')->put('user/editar/password/{id}', 'User\UserController@EditarUsuarioPassword');
-Route::resource('user', 'User\UserController');
-
-
+Route::name('user-info')->post('user/menu/add/{id}', 'User\UserController@agregarMenuUsuario');
+});
 
 
 
@@ -39,6 +43,9 @@ Route::post('oauth/token','\Laravel\Passport\Http\Controllers\AccessTokenControl
 /* -------------------------------------------------------------------------- */
 /*                                  MATRICULA                                 */
 /* -------------------------------------------------------------------------- */
+
+Route::group(['middleware' => 'admin'], function () {
+    // PROTEJO LAS RUTAS PARA SABER SI ESTA HABILITADO EL USUARIO 
 
 Route::name('psicologo')->get('matricula', 'Matricula\MatriculaController@getMatricula'); 
 Route::name('psicologo')->get('matriculas', 'Matricula\MatriculaController@getMatriculas'); 
@@ -49,22 +56,27 @@ Route::name('psicologo')->delete('matricula/{id}', 'Matricula\MatriculaControlle
 Route::name('psicologo')->post('matricula/obra/social/add/{id}', 'Matricula\MatriculaController@setMatriculaObraSocial'); 
 
 Route::name('paciente')->get('paciente/by/condicion', 'Matricula\MatriculaController@getPacienteByCondicion'); 
-
+});
 
 /* -------------------------------------------------------------------------- */
 /*                                 OBRA SOCIAL                                */
 /* -------------------------------------------------------------------------- */
 
-
-
+Route::group(['middleware' => 'admin'], function () {
 Route::name('obra-social')->get('obra/social', 'ObraSocial\ObraSocialController@getObraSocial'); 
 Route::name('obra-social')->put('obra/social/{id}',  'ObraSocial\ObraSocialController@putObraSocial'); 
 Route::name('obra-social')->post('obra/social', 'ObraSocial\ObraSocialController@setObraSocial');
 Route::name('obra-social')->get('obra/social/convenio', 'ObraSocial\ObraSocialController@getConvenioByObraSocial');
+});
+
+
 
 /* -------------------------------------------------------------------------- */
 /*                                   COBROS                                   */
 /* -------------------------------------------------------------------------- */
+
+
+Route::group(['middleware' => 'admin'], function () {
 Route::name('concepto')->get('concepto', 'Cobro\CobroController@getConcepto'); 
 Route::name('concepto')->post('concepto',  'Cobro\CobroController@setConcepto'); 
 Route::name('concepto')->put('concepto/{id}',  'Cobro\CobroController@putConcepto'); 
@@ -76,15 +88,35 @@ Route::name('cobros')->get('cobro/by/matricula/by/dates', 'Cobro\CobroController
 Route::name('cobros')->get('cobro/plan', 'Cobro\CobroController@getPlanes');
 Route::name('cobros')->post('cobro/by/matricula/actualizar',  'Cobro\CobroController@putDeuda'); 
 Route::name('cobros')->post('cobro/by/matricula', 'Cobro\CobroController@setDeuda');
+});
+
 
 /* -------------------------------------------------------------------------- */
 /*                                 LIQUIDACION                                */
 /* -------------------------------------------------------------------------- */
 
-
-Route::name('liquidacion')->get('liquidacion/orden/by/estado/matricula', 'Liquidacion\LiquidacionController@getLiquidacionByMatriculaAndEstado'); 
-Route::name('liquidacion')->post('liquidacion/orden',  'Liquidacion\LiquidacionController@setOrden'); 
+Route::group(['middleware' => 'admin'], function () {
+Route::name('liquidacion')->get('liquidacion/orden/by/estado/matricula', 'Liquidacion\LiquidacionController@getLiquidacionByMatriculaAndEstado');  
+Route::name('liquidacion')->get('liquidacion/orden/by/dates/estado', 'Liquidacion\LiquidacionController@getLiquidacionOrdenBetweenDates');
+Route::name('liquidacion')->post('liquidacion/orden',  'Liquidacion\LiquidacionController@setOrden');  
 Route::name('liquidacion')->put('liquidacion/orden/{id}',  'Liquidacion\LiquidacionController@putOrden'); 
+Route::name('liquidacion')->post('liquidacion/orden/auditar',  'Liquidacion\LiquidacionController@auditarOrdenes');  
+});
+
+
+/* -------------------------------------------------------------------------- */
+/*                                 LIQUIDACION                                */
+/* -------------------------------------------------------------------------- */
+
+Route::group(['middleware' => 'admin'], function () {
+Route::name('liquidacion')->post('liquidacion/expediente/afectar',  'Liquidacion\LiquidacionController@afectarOrdenes');  
+Route::name('liquidacion')->put( 'liquidacion/expediente/actualizar/{id}',  'Liquidacion\LiquidacionController@putExpediente');  
+Route::name('liquidacion')->get( 'liquidacion/expediente/desafectar',  'Liquidacion\LiquidacionController@desafectarExpediente');  
+});
+
+
+
+
 
 
 
@@ -93,6 +125,8 @@ Route::name('liquidacion')->put('liquidacion/orden/{id}',  'Liquidacion\Liquidac
 /* -------------------------------------------------------------------------- */
 /*                             MOVIMIENTOS DE CAJA                            */
 /* -------------------------------------------------------------------------- */
+Route::group(['middleware' => 'admin'], function () {
+
 Route::name('movimiento-caja')->get('movimiento/concepto/moneda', 'MovimientosCaja\MovimientosCajaController@getConceptoMoneda'); 
 Route::name('movimiento-caja')->get('movimiento/concepto/monedas', 'MovimientosCaja\MovimientosCajaController@getConceptoMonedas'); 
 Route::name('movimiento-caja')->post('movimiento/concepto/moneda', 'MovimientosCaja\MovimientosCajaController@setConceptoMoneda'); 
@@ -125,6 +159,7 @@ Route::name('movimiento-caja')->get('proveedor', 'MovimientosCaja\MovimientosCaj
 Route::name('movimiento-caja')->get('proveedores', 'MovimientosCaja\MovimientosCajaController@getProveedores'); 
 Route::name('movimiento-caja')->post('proveedor', 'MovimientosCaja\MovimientosCajaController@setProveedor'); 
 Route::name('movimiento-caja')->put('proveedor/{id}', 'MovimientosCaja\MovimientosCajaController@putProveedor'); 
+});
 
 
 
