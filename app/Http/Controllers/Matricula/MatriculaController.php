@@ -14,7 +14,8 @@ class MatriculaController extends ApiController
     
   public function getMatriculas()
   {      
-    $res = DB::select( DB::raw("SELECT id, mat_matricula_psicologo_nacional, mat_matricula_psicologo, mat_apellido, mat_nombre, mat_sexo, mat_localidad, mat_domicilio_particular, mat_domicilio_laboral, mat_tel_particular, mat_tel_laboral, mat_lugar_laboral, mat_email, mat_tipo_dni, mat_dni, mat_num_cuenta, mat_fecha_nacimiento, mat_fecha_egreso, mat_fecha_matricula, mat_estado_matricula, mat_especialidad, mat_orientacion, mat_abordaje, mat_excento, mat_cuit, mat_ning_bto, mat_banco, mat_cbu, mat_nro_folio, mat_nro_acta, mat_fallecido, mat_historial, mat_numero_superintendecia, mat_n_superintendencia_fecha_vencimiento, debito_adherido, debito_sucursal, debito_numero_cuenta, debito_codigo_concepto, debito_codigo_cliente, debito_codigo_abonado, debito_digito_verificador FROM mat_matricula WHERE 1
+    $res = DB::select( DB::raw("SELECT id, mat_matricula_psicologo_nacional, mat_matricula_psicologo, mat_apellido, mat_nombre, mat_sexo, mat_localidad, mat_domicilio_particular, mat_domicilio_laboral, mat_tel_particular, mat_tel_laboral, mat_lugar_laboral, mat_email, mat_tipo_dni, mat_dni, mat_num_cuenta, mat_fecha_nacimiento, mat_fecha_egreso, mat_fecha_matricula, mat_estado_matricula, mat_especialidad, mat_orientacion, mat_abordaje, mat_excento, mat_cuit, mat_ning_bto, mat_banco, mat_cbu, mat_nro_folio, mat_nro_acta, mat_fallecido, mat_historial, mat_numero_superintendecia, 
+    mat_n_superintendencia_fecha_vencimiento FROM mat_matricula WHERE 1
     "));
         return response()->json($res, "200");
   }
@@ -26,8 +27,7 @@ class MatriculaController extends ApiController
     $res = DB::select( DB::raw("SELECT id, mat_matricula_psicologo_nacional, mat_matricula_psicologo, mat_apellido, mat_nombre, mat_sexo, mat_localidad, mat_domicilio_particular, mat_domicilio_laboral, mat_tel_particular, mat_tel_laboral, 
     mat_lugar_laboral, mat_email, mat_tipo_dni, mat_dni, mat_num_cuenta, mat_fecha_nacimiento, mat_fecha_egreso, mat_fecha_matricula, mat_estado_matricula, 
     mat_especialidad, mat_orientacion, mat_abordaje, mat_excento, mat_cuit, mat_ning_bto, mat_banco, mat_cbu, mat_nro_folio, mat_nro_acta, mat_fallecido, mat_historial, 
-    mat_numero_superintendecia, mat_n_superintendencia_fecha_vencimiento, debito_adherido, debito_sucursal, debito_numero_cuenta, debito_codigo_concepto, debito_codigo_cliente, 
-    debito_codigo_abonado, debito_digito_verificador 
+    mat_numero_superintendecia, mat_n_superintendencia_fecha_vencimiento
     FROM mat_matricula WHERE  mat_matricula.mat_matricula_psicologo = :matricula_id
     "),
      array(                       

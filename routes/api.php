@@ -111,7 +111,8 @@ Route::name('liquidacion')->post('liquidacion/orden/auditar',  'Liquidacion\Liqu
 Route::group(['middleware' => 'admin'], function () {
 Route::name('liquidacion')->post('liquidacion/expediente/afectar',  'Liquidacion\LiquidacionController@afectarOrdenes');  
 Route::name('liquidacion')->put( 'liquidacion/expediente/actualizar/{id}',  'Liquidacion\LiquidacionController@putExpediente');  
-Route::name('liquidacion')->get( 'liquidacion/expediente/desafectar',  'Liquidacion\LiquidacionController@desafectarExpediente');  
+Route::name('liquidacion')->get( 'liquidacion/expediente/desafectar',  'Liquidacion\LiquidacionController@desafectarExpediente');   
+Route::name('liquidacion')->get( 'liquidacion/liquidar',  'Liquidacion\LiquidacionController@liquidar');
 });
 
 

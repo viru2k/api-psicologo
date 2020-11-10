@@ -184,19 +184,21 @@ class MovimientosCajaController extends ApiController
     
     public function geRegistroMovimientoBydate(Request $request)
     {
+        
         $tmp_fecha = str_replace('/', '-', $request->input('fecha_desde'));
         $fecha_desde =  date('Y-m-d H:i:s', strtotime($tmp_fecha));         
         $tmp_fecha = str_replace('/', '-', $request->input('fecha_hasta'));
         $fecha_hasta =  date('Y-m-d H:i:s', strtotime($tmp_fecha));      
 
-        $horario = DB::select( DB::raw("SELECT mov_registro.id, mov_concepto_cuenta_id, descripcion, mov_cuenta_id , fecha_carga, mov_tipo_comprobante_id, comprobante_numero, 
-        tiene_enlace_factura, mov_tipo_moneda_id,  mov_registro.importe,  mov_registro.cotizacion, mov_registro.total,factura_encabezado_id, proveedor_id, proveedor_nombre, 
+        $horario = DB::select( DB::raw("SELECT mov_registro.id, mov_concepto_cuenta_id, descripcion, mov_cuenta_id , fecha_carga, mov_tipo_comprobante_id,
+         comprobante_numero, tiene_enlace_factura, mov_tipo_moneda_id,  mov_registro.importe,  mov_registro.cotizacion,
+         mov_registro.total, factura_encabezado_id, paciente_id, proveedor_id, proveedor_nombre, 
         proveedor_cuit, proveedor_direccion , 
-         factura_encabezado.factura_pto_vta_id, factura_encabezado.medico_id, factura_encabezado.factura_comprobante_id, 
+       factura_encabezado.factura_pto_vta_id, factura_encabezado.medico_id, factura_encabezado.factura_comprobante_id, 
         factura_encabezado.factura_concepto_id, concepto_cuenta, 
         cuenta_nombre, movimiento_tipo, tipo_comprobante ,tipo_moneda    , cierre_caja_id
         FROM mov_registro 
-        LEFT JOIN paciente_proveedor ON mov_registro.proveedor_id = paciente_proveedor.id         
+        LEFT JOIN paciente_proveedor ON mov_registro.proveedor_id = paciente_proveedor.id        
         LEFT JOIN factura_encabezado ON mov_registro.factura_encabezado_id = factura_encabezado.id ,
         mov_concepto_cuenta, mov_cuenta, mov_tipo_comprobante, mov_tipo_moneda 
         WHERE mov_registro.mov_concepto_cuenta_id = mov_concepto_cuenta.id 
