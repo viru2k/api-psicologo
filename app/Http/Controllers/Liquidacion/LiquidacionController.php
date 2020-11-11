@@ -47,6 +47,7 @@ var $TOTAL_os_ing_brutos = 0;
 var $TOTAL_os_lote_hogar = 0;
 var $TOTAL_os_gasto_admin = 0;
 var $TOTAL_os_imp_cheque = 0;
+var $TOTAL_PERCEPCIONES = 0;
 var $TOTAL_os_descuentos = 0; // valores cargados a mano para realizar correcciones , debitos  o creditos
 var $TOTAL_os_desc_matricula = 0; // descuentos de matricula
 var $TOTAL_os_desc_fondo_sol = 0; // descuentos de fondo solidario
@@ -59,14 +60,14 @@ var $TOTAL_os_otros_ing_eg = 0; // otros movimientos
 
 public function liquidar(Request $request)
 {     
-  
- // echo date("t", strtotime(date("Y-m-d H:i:s")  ));
-  $mat_matricula = $request->input('mat_matricula');
-  $estado = $request->input('estado');
+    
+  $id_liquidacion_generada = $request->input('id_liquidacion_generada');
   //$matriculados = $this->obtenerMatriculas(); POR AHORA NO ES NECESARIO
-  $liquidacionDetalle = $this->obtenerLiquidacionDetalle(111); // DEBE VENIR DEL REQUEST
+  $liquidacionDetalle = $this->obtenerLiquidacionDetalle($id_liquidacion_generada); // DEBE VENIR DEL REQUEST
   $concepto = $this->obtenerConcepto();
+  
   $percepcion = $this->obtenerPercepcion();
+
    //
 
 /* --------------- echo $matriculados[0]->mat_nombre_apellido; -------------- */
@@ -85,9 +86,14 @@ public function liquidar(Request $request)
   if($_liquidacionDetalle->mat_matricula) {
     
     // CALCULO LOS CONCEPTOS
-    $this->calcularPercepciones($_liquidacionDetalle);
+  $TOTAL_PERCEPCIONES =   $this->calcularPercepciones($_liquidacionDetalle);
+  echo 'bruto '. $saldo;
+  $saldo = $saldo - $TOTAL_PERCEPCIONES;
+  echo 'saldo '.round($saldo,2,PHP_ROUND_HALF_UP).' '  ;
     // OBTENGO LA DEUDA Y PRUEBO DESCONTAR
-   // OK $deuda = $this->obtenerDeudaMatricula($_liquidacionDetalle->mat_matricula);    
+    $this->deuda = $this->obtenerDeudaMatricula($_liquidacionDetalle->mat_matricula);   
+    
+    $this->calcularDeudaMatricula();
   }
 
 
@@ -123,27 +129,31 @@ echo 'resuelto';
     $res = DB::select( DB::raw("SELECT id_liquidacion_detalle, os_liq_detalle, os_liq_monto_porcentaje, os_liq_tipo FROM os_liq_percepcion WHERE 1
     "));
 
-    $_saldo = 0;
+    
 
     foreach ($res as $index => $registro) {
 
       if($registro->id_liquidacion_detalle === 9){
-        $os_gasto_admin = $registro->os_liq_monto_porcentaje;
+        $this->os_gasto_admin = $registro->os_liq_monto_porcentaje;
       }
       if($registro->id_liquidacion_detalle === 13){
-        $os_ing_brutos = $registro->os_liq_monto_porcentaje;
+        
+        $this->os_ing_brutos = $registro->os_liq_monto_porcentaje;
+     
       }
       if($registro->id_liquidacion_detalle === 14){
-        $os_lote_hogar = $registro->os_liq_monto_porcentaje;
+        $this->os_lote_hogar = $registro->os_liq_monto_porcentaje;
       }
       if($registro->id_liquidacion_detalle === 15){
-        $os_imp_cheque = $registro->os_liq_monto_porcentaje;
+        $this->os_imp_cheque = $registro->os_liq_monto_porcentaje;
       }
       if($registro->id_liquidacion_detalle === 17){
-        $os_int_mora = $registro->os_liq_monto_porcentaje;
+        $this->os_int_mora = $registro->os_liq_monto_porcentaje;
       }
       if ($registro->id_liquidacion_detalle === 18){
-        $os_ing_brutos_limite = $registro->os_liq_monto_porcentaje;
+      
+        $this->TOTAL_os_ing_brutos_limite = $registro->os_liq_monto_porcentaje;
+        
       }
 
     }
@@ -168,7 +178,7 @@ echo 'resuelto';
 
   private function obtenerDeudaMatricula($mat_matricula) {
 
-    echo $mat_matricula;
+   // echo $mat_matricula;
     $res = DB::select( DB::raw("(SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 1 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento  ORDER BY mat_pago_historico.mat_fecha_vencimiento DESC LIMIT 1)
     UNION
     (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 1 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento  ORDER BY mat_pago_historico.mat_fecha_vencimiento ASC LIMIT 2)
@@ -216,30 +226,52 @@ echo 'resuelto';
 /* -------------------------------------------------------------------------- */
 
 private function calcularPercepciones($_liquidacionDetalle) {
-  $_saldo_restante = $saldo;
+  
+  $_saldo_restante = $_liquidacionDetalle->os_liq_bruto;
   // valido si facturo mas de 1500 o el valor en concepto de ingreso brutos
-  if($saldo >= $os_ing_brutos_limite) {
-
-     $TOTAL_os_ing_brutos = ($_saldo_restante * $os_ing_brutos); 
-     $_saldo_restante = $_saldo_restante - ($_saldo_restante * $os_ing_brutos);
-
-     if ($this->tieneSaldo($_saldo_restante,$os_lote_hogar)) {
-      $TOTAL_os_lote_hogar = ($_saldo_restante * $os_lote_hogar); 
-      $_saldo_restante = $_saldo_restante - ($_saldo_restante * $os_lote_hogar);
+  if($_saldo_restante >=  $this->TOTAL_os_ing_brutos_limite) {
+    
+     $this->TOTAL_os_ing_brutos = ($_saldo_restante * $this->os_ing_brutos); 
+     $_saldo_restante = $_saldo_restante - ($_saldo_restante * $this->os_ing_brutos);
+    //  echo $this->os_ing_brutos;
+     if ($this->tieneSaldo($_saldo_restante,$this->os_lote_hogar)) {
+      $this->TOTAL_os_lote_hogar = ($_saldo_restante * $this->os_lote_hogar); 
+      $_saldo_restante = $_saldo_restante - ($_saldo_restante * $this->os_lote_hogar);
      }
 
   }
 
-  if ($this->tieneSaldo($_saldo_restante,$os_gasto_admin)) {
-    $TOTAL_os_gasto_admin = ($_saldo_restante * $os_gasto_admin); 
-    $_saldo_restante = $_saldo_restante - ($_saldo_restante * $os_gasto_admin);
+  if ($this->tieneSaldo($_saldo_restante,$this->os_gasto_admin)) {
+    $this->TOTAL_os_gasto_admin = ($_saldo_restante * $this->os_gasto_admin); 
+ 
+    $_saldo_restante = $_saldo_restante - ($_saldo_restante * $this->os_gasto_admin);
    }
 
-  if ($this->tieneSaldo($_saldo_restante,$os_imp_cheque)) {
-   $TOTAL_os_imp_cheque = ($_saldo_restante * $os_imp_cheque); 
-   $_saldo_restante = $_saldo_restante - ($_saldo_restante * $os_imp_cheque);
+  if ($this->tieneSaldo($_saldo_restante,$this->os_imp_cheque)) {
+   $this->TOTAL_os_imp_cheque = ($_saldo_restante * $this->os_imp_cheque); 
+   $_saldo_restante = $_saldo_restante - ($_saldo_restante * $this->os_imp_cheque);
   }
-   
+  // echo  round($this->TOTAL_os_ing_brutos,2,PHP_ROUND_HALF_UP). ' '. $this->TOTAL_os_ing_brutos. ' ';
+  // echo  round($this->TOTAL_os_lote_hogar,2,PHP_ROUND_HALF_UP). ' '. $this->TOTAL_os_lote_hogar. ' ';
+  // echo  round($this->TOTAL_os_gasto_admin,2,PHP_ROUND_HALF_UP). ' '. $this->TOTAL_os_gasto_admin. ' ';
+  // echo  round($this->TOTAL_os_imp_cheque,2,PHP_ROUND_HALF_UP). ' '. $this->TOTAL_os_imp_cheque. ' ';
+   $_TOTAL = round($this->TOTAL_os_ing_brutos,2,PHP_ROUND_HALF_UP) + round($this->TOTAL_os_lote_hogar,2,PHP_ROUND_HALF_UP) + round($this->TOTAL_os_gasto_admin,2,PHP_ROUND_HALF_UP) + round($this->TOTAL_os_imp_cheque,2,PHP_ROUND_HALF_UP);
+
+  // echo round($_TOTAL,2,PHP_ROUND_HALF_UP) ;
+  return $_TOTAL;
+}
+
+
+private function calcularDeudaMatricula(){
+  
+  $_saldo_restante = $this->saldo;
+  foreach ($this->deuda as $index => $_deuda) {
+   if ($this->tieneSaldo($_saldo_restante,$_deuda->mat_monto)) {
+    
+    echo 'saldo '.$_deuda->mat_monto.' ';
+  } 
+
+  }
 
 }
 
