@@ -113,9 +113,15 @@ Route::name('liquidacion')->post('liquidacion/expediente/afectar',  'Liquidacion
 Route::name('liquidacion')->put( 'liquidacion/expediente/actualizar/{id}',  'Liquidacion\LiquidacionController@putExpediente');  
 Route::name('liquidacion')->get( 'liquidacion/expediente/desafectar',  'Liquidacion\LiquidacionController@desafectarExpediente');   
 Route::name('liquidacion')->get( 'liquidacion/liquidar',  'Liquidacion\LiquidacionController@liquidar');
+
+
+Route::name('liquidacion')->put( 'liquidacion/orden',  'Liquidacion\LiquidacionController@auditarOrdenes');
+Route::name('liquidacion')->put( 'liquidacion/generar/expediente',  'Liquidacion\LiquidacionController@putGenerarExpediente');
+Route::name('liquidacion')->post( 'liquidacion/generar/expediente',  'Liquidacion\LiquidacionController@setGenerarExpediente');
+Route::name('liquidacion')->post( 'liquidacion/generar/liquidacion/detalle',  'Liquidacion\LiquidacionController@generarLiquidacionDetalle');
 });
 
-
+Route::name('liquidacion')->get( 'liquidacion/orden/by/matricula/liquidacion',  'Liquidacion\LiquidacionController@getOrdenByMatriculaAndLiquidacion');
 
 
 

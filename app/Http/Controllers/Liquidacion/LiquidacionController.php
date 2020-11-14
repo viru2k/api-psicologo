@@ -11,12 +11,14 @@ use Illuminate\Support\Facades\DB;
 class LiquidacionController extends ApiController
 {
 
+var $avance_liquidacion = 0;  
 // ARREGLOS
 var $matriculados;
 var $conceptos;
 var $deuda;
 var $percepcion;
 var $liquidacionDetalle;
+
 // VALORES GENERALES
 
 var $concepto;
@@ -25,6 +27,9 @@ var $neto = 0; // valor final despues de deducciones
 var $importe = 0; // valor del concepto
 var $saldo = 0; // despues de cada de deduccion va decreciendo , si es 0 no pueden seguir realizando deducciones
 var $tieneSaldo = false; 
+var $pago_historico_ids = '';
+var $INTERESES_pago_historico_id = '';
+var $interes = 0;
 
 
 // CONCEPTOS A DEDUCIR
@@ -60,13 +65,14 @@ var $TOTAL_os_otros_ing_eg = 0; // otros movimientos
 
 public function liquidar(Request $request)
 {     
-    
+  $_registros = 0;
   $id_liquidacion_generada = $request->input('id_liquidacion_generada');
   //$matriculados = $this->obtenerMatriculas(); POR AHORA NO ES NECESARIO
-  $liquidacionDetalle = $this->obtenerLiquidacionDetalle($id_liquidacion_generada); // DEBE VENIR DEL REQUEST
-  $concepto = $this->obtenerConcepto();
-  
-  $percepcion = $this->obtenerPercepcion();
+  $this->liquidacionDetalle = $this->obtenerLiquidacionDetalle($id_liquidacion_generada); // DEBE VENIR DEL REQUEST
+  $this->concepto = $this->obtenerConcepto();
+  $this->percepcion = $this->obtenerPercepcion();
+
+  $_registros = count($this->liquidacionDetalle);
 
    //
 
@@ -74,34 +80,73 @@ public function liquidar(Request $request)
 /* ------------------------ var_dump($matriculados); ------------------------ */
 
 
-    foreach ($liquidacionDetalle as $index => $_liquidacionDetalle) {
+    foreach ($this->liquidacionDetalle as $index => $_liquidacionDetalle) {
       
-
+      $avance_liquidacion = ($index * 100) /$_registros;
 
 /* ---------- GUARDO EL BRUTO PARA PODER IR REALIZANDO DEDUCCIONES ---------- */
-    $saldo = $_liquidacionDetalle->os_liq_bruto;
+    $this->saldo = $_liquidacionDetalle->os_liq_bruto;
 
 /* ---------------- CALCULO LAS RETENCIONES DE CADA MATRICULA --------------- */
-//echo $_liquidacionDetalle->mat_matricula;   
-  if($_liquidacionDetalle->mat_matricula) {
-    
-    // CALCULO LOS CONCEPTOS
-  $TOTAL_PERCEPCIONES =   $this->calcularPercepciones($_liquidacionDetalle);
-  echo 'bruto '. $saldo;
-  $saldo = $saldo - $TOTAL_PERCEPCIONES;
-  echo 'saldo '.round($saldo,2,PHP_ROUND_HALF_UP).' '  ;
-    // OBTENGO LA DEUDA Y PRUEBO DESCONTAR
-    $this->deuda = $this->obtenerDeudaMatricula($_liquidacionDetalle->mat_matricula);   
-    
-    $this->calcularDeudaMatricula();
-  }
+    //echo $_liquidacionDetalle->mat_matricula;   
+      if($_liquidacionDetalle->mat_matricula) {
+        
+        // CALCULO LOS CONCEPTOS
+      $this->TOTAL_PERCEPCIONES =   $this->calcularPercepciones($_liquidacionDetalle);
 
+      $this->saldo = $this->saldo - $this->TOTAL_PERCEPCIONES;    
+        // OBTENGO LA DEUDA Y PRUEBO DESCONTAR
+        $this->deuda = $this->obtenerDeudaMatricula($_liquidacionDetalle->mat_matricula);   
+        
+        $this->pago_historico_ids = $this->calcularDeudaMatricula();
+        
+        if($this->pago_historico_ids !== ''){ // SI NO VIENE VACIO ACTUALIZO LOS VALORES DE MATRICULA
+          $this->actualizarDeudaLiquidacion($this->pago_historico_ids, $_liquidacionDetalle->id_liquidacion_detalle, $_liquidacionDetalle->mat_matricula );
 
-
+        }
+      }
+      // ACTUALIZO TODAS LAS DEDUCCIONES
+      $this->actualizarLiquidacionDetalleConceptos($_liquidacionDetalle->id_liquidacion_detalle);
+      // LIMPIAR DATOS DEL PSICOLOGO
+      $this->limpiarDatos();
     }
+
+    if($this->INTERESES_pago_historico_id !== ''){ // SI NO VIENE VACIO ACTUALIZO LOS VALORES DE MATRICULA
+      $this->actualizarDeudaLiquidacionInteres($this->INTERESES_pago_historico_id);
+    }
+    $this->INTERESES_pago_historico_id = '';
 echo 'resuelto';
 
     
+}
+
+private function limpiarDatos() {
+
+    
+  $this->bruto = 0; 
+  $this->neto = 0; 
+  $this->importe = 0; 
+  $this->saldo = 0; 
+  $this->tieneSaldo = false; 
+  $this->pago_historico_ids = '';
+  $this->interes = 0;
+  // CONCEPTOS A DEDUCIR  
+  $this->os_descuentos = 0; 
+  $this->os_desc_matricula = 0; 
+  $this->os_desc_fondo_sol = 0;
+  $this->os_otros_ing_eg = 0; 
+  // VALORES CALCULADOS
+  $this->TOTAL_os_int_mora = 0;
+  $this->TOTAL_os_ing_brutos = 0;
+  $this->TOTAL_os_lote_hogar = 0;
+  $this->TOTAL_os_gasto_admin = 0;
+  $this->TOTAL_os_imp_cheque = 0;
+  $this->TOTAL_PERCEPCIONES = 0;
+  $this->TOTAL_os_descuentos = 0; 
+  $this->TOTAL_os_desc_matricula = 0; 
+  $this->TOTAL_os_desc_fondo_sol = 0; 
+  $this->TOTAL_os_otros_ing_eg = 0; 
+
 }
 
 
@@ -179,15 +224,15 @@ echo 'resuelto';
   private function obtenerDeudaMatricula($mat_matricula) {
 
    // echo $mat_matricula;
-    $res = DB::select( DB::raw("(SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 1 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento  ORDER BY mat_pago_historico.mat_fecha_vencimiento DESC LIMIT 1)
+    $res = DB::select( DB::raw("(SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 1 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento AND  year(`mat_fecha_vencimiento`) <= year(curdate()) AND month(`mat_fecha_vencimiento`) <= month(curdate())   ORDER BY mat_pago_historico.mat_fecha_vencimiento DESC LIMIT 1)
     UNION
-    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 1 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento  ORDER BY mat_pago_historico.mat_fecha_vencimiento ASC LIMIT 2)
+    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 1 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento AND  year(`mat_fecha_vencimiento`) <= year(curdate()) AND month(`mat_fecha_vencimiento`) <= month(curdate())  ORDER BY mat_pago_historico.mat_fecha_vencimiento ASC LIMIT 2)
     UNION
-    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 2 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento  ORDER BY mat_pago_historico.mat_fecha_vencimiento DESC LIMIT 1)
+    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 2 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento AND  year(`mat_fecha_vencimiento`) <= year(curdate()) AND month(`mat_fecha_vencimiento`) <= month(curdate())  ORDER BY mat_pago_historico.mat_fecha_vencimiento DESC LIMIT 1)
     UNION
-    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 2 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento  ORDER BY mat_pago_historico.mat_fecha_vencimiento ASC LIMIT 2)
+    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 2 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento AND  year(`mat_fecha_vencimiento`) <= year(curdate()) AND month(`mat_fecha_vencimiento`) <= month(curdate())   ORDER BY mat_pago_historico.mat_fecha_vencimiento ASC LIMIT 2)
     UNION
-    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto != 2 AND mat_pago_historico.id_concepto != 1 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula =".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento  ORDER BY mat_pago_historico.mat_fecha_vencimiento DESC LIMIT 1)
+    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto != 2 AND mat_pago_historico.id_concepto != 1 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula =".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento AND  year(`mat_fecha_vencimiento`) <= year(curdate()) AND month(`mat_fecha_vencimiento`) <= month(curdate())   ORDER BY mat_pago_historico.mat_fecha_vencimiento DESC LIMIT 1)
     "));     
              
     return $res;
@@ -229,32 +274,30 @@ private function calcularPercepciones($_liquidacionDetalle) {
   
   $_saldo_restante = $_liquidacionDetalle->os_liq_bruto;
   // valido si facturo mas de 1500 o el valor en concepto de ingreso brutos
-  if($_saldo_restante >=  $this->TOTAL_os_ing_brutos_limite) {
-    
-     $this->TOTAL_os_ing_brutos = ($_saldo_restante * $this->os_ing_brutos); 
-     $_saldo_restante = $_saldo_restante - ($_saldo_restante * $this->os_ing_brutos);
-    //  echo $this->os_ing_brutos;
-     if ($this->tieneSaldo($_saldo_restante,$this->os_lote_hogar)) {
-      $this->TOTAL_os_lote_hogar = ($_saldo_restante * $this->os_lote_hogar); 
-      $_saldo_restante = $_saldo_restante - ($_saldo_restante * $this->os_lote_hogar);
-     }
+      if($_saldo_restante >=  $this->TOTAL_os_ing_brutos_limite) {
+        
+        $this->TOTAL_os_ing_brutos = ($_saldo_restante * $this->os_ing_brutos); 
+        $_saldo_restante = $_saldo_restante - ($_saldo_restante * $this->os_ing_brutos);
+        if ($this->tieneSaldo($_saldo_restante,$this->os_lote_hogar)) {
+          $this->TOTAL_os_lote_hogar = ($this->TOTAL_os_ing_brutos * $this->os_lote_hogar); 
+          $_saldo_restante = $_saldo_restante - ($_saldo_restante * $this->os_lote_hogar);
+        }
+      }
 
-  }
+      if ($this->tieneSaldo($_saldo_restante, ($_saldo_restante * $this->os_gasto_admin))) {
+        $this->TOTAL_os_gasto_admin = ($_saldo_restante * $this->os_gasto_admin); 
+        echo 'ga'. round($this->TOTAL_os_gasto_admin,2,PHP_ROUND_HALF_UP). ' ';
+        $_saldo_restante = $_saldo_restante - ($_saldo_restante * $this->os_gasto_admin);
+      }
 
-  if ($this->tieneSaldo($_saldo_restante,$this->os_gasto_admin)) {
-    $this->TOTAL_os_gasto_admin = ($_saldo_restante * $this->os_gasto_admin); 
- 
-    $_saldo_restante = $_saldo_restante - ($_saldo_restante * $this->os_gasto_admin);
-   }
-
-  if ($this->tieneSaldo($_saldo_restante,$this->os_imp_cheque)) {
-   $this->TOTAL_os_imp_cheque = ($_saldo_restante * $this->os_imp_cheque); 
-   $_saldo_restante = $_saldo_restante - ($_saldo_restante * $this->os_imp_cheque);
-  }
-  // echo  round($this->TOTAL_os_ing_brutos,2,PHP_ROUND_HALF_UP). ' '. $this->TOTAL_os_ing_brutos. ' ';
-  // echo  round($this->TOTAL_os_lote_hogar,2,PHP_ROUND_HALF_UP). ' '. $this->TOTAL_os_lote_hogar. ' ';
-  // echo  round($this->TOTAL_os_gasto_admin,2,PHP_ROUND_HALF_UP). ' '. $this->TOTAL_os_gasto_admin. ' ';
-  // echo  round($this->TOTAL_os_imp_cheque,2,PHP_ROUND_HALF_UP). ' '. $this->TOTAL_os_imp_cheque. ' ';
+      if ($this->tieneSaldo($_saldo_restante,$this->os_imp_cheque)) {
+      $this->TOTAL_os_imp_cheque = ($_saldo_restante * $this->os_imp_cheque); 
+      $_saldo_restante = $_saldo_restante - ($_saldo_restante * $this->os_imp_cheque);
+      }
+  // echo 'ing_brutos'. round($this->TOTAL_os_ing_brutos,2,PHP_ROUND_HALF_UP). ' ';
+  // echo 'lh'. round($this->TOTAL_os_lote_hogar,2,PHP_ROUND_HALF_UP). ' ';
+  // 
+  // echo 'ch'. round($this->TOTAL_os_imp_cheque,2,PHP_ROUND_HALF_UP). ' ';
    $_TOTAL = round($this->TOTAL_os_ing_brutos,2,PHP_ROUND_HALF_UP) + round($this->TOTAL_os_lote_hogar,2,PHP_ROUND_HALF_UP) + round($this->TOTAL_os_gasto_admin,2,PHP_ROUND_HALF_UP) + round($this->TOTAL_os_imp_cheque,2,PHP_ROUND_HALF_UP);
 
   // echo round($_TOTAL,2,PHP_ROUND_HALF_UP) ;
@@ -263,16 +306,59 @@ private function calcularPercepciones($_liquidacionDetalle) {
 
 
 private function calcularDeudaMatricula(){
-  
+
+  $_id_pago_historico = '';
+ // echo 'saldo '.round($this->saldo,2,PHP_ROUND_HALF_UP).' '  ;
   $_saldo_restante = $this->saldo;
+
   foreach ($this->deuda as $index => $_deuda) {
+
    if ($this->tieneSaldo($_saldo_restante,$_deuda->mat_monto)) {
-    
-    echo 'saldo '.$_deuda->mat_monto.' ';
+     
+     if($_deuda->id_concepto === 1) {
+        //CALCULO LOS INTERESES SI ESTA VENCIDA       
+        if($this->diferenciaFecha($_deuda->mat_fecha_vencimiento, date('Y-m-d')) <3){
+          $this->TOTAL_os_desc_matricula =  $this->TOTAL_os_desc_matricula + $_deuda->mat_monto;
+        } else {
+          $this->TOTAL_os_desc_matricula =  $this->TOTAL_os_desc_matricula + ($_deuda->mat_monto * $_deuda->mat_interes);
+
+          //  SI SE EXCEDE LOS MESES PROCEDO A CREAR UN ARREGLO DONDE SE GUARDAN LOS RENGLONES QUE SE TIENEN QUE ACTUALIZAR
+          $this->interes = $_deuda->mat_interes;
+          
+          if(strlen($this->INTERESES_pago_historico_id) === 0){ 
+            $this->INTERESES_pago_historico_id =  $this->INTERESES_pago_historico_id.   $_deuda->id_pago_historico;
+          } else {
+            $this->INTERESES_pago_historico_id = $this->INTERESES_pago_historico_id.  ',' .$_deuda->id_pago_historico;
+          }
+        }
+     }
+     if($_deuda->id_concepto === 2) {
+      $this->TOTAL_os_desc_fondo_sol =  $this->TOTAL_os_desc_fondo_sol + $_deuda->mat_monto;
+     }
+     if(($_deuda->id_concepto !== 1) && ($_deuda->id_concepto !== 2)) {
+      $this->TOTAL_os_otros_ing_eg = $this->TOTAL_os_otros_ing_eg + $_deuda->mat_monto;
+     }
+     
+     $_saldo_restante = $_saldo_restante - $_deuda->mat_monto;
+     
+    if($_id_pago_historico === '') {
+     $_id_pago_historico =  strval($_deuda->id_pago_historico);
+    } else {
+      $_id_pago_historico =$_id_pago_historico .','. strval($_deuda->id_pago_historico);
+    }
+
   } 
 
   }
+  
 
+  echo 'IDS '.$_id_pago_historico;
+  echo ' - MAT '.$this->TOTAL_os_desc_matricula;
+  echo ' - FS '.$this->TOTAL_os_desc_fondo_sol;
+  echo ' - OTRO '.$this->TOTAL_os_otros_ing_eg;
+  echo '- SALDO  RESTANTE'.$_saldo_restante;
+
+ return $_id_pago_historico;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -295,6 +381,67 @@ private function tieneSaldo($saldo,$importe) {
   }
 }
 
+private function diferenciaFecha($fecha, $fechaActual){
+  $_fechaActual = date('Y-m-d');
+
+  $ts1 = strtotime($fecha);
+  $ts2 = strtotime($_fechaActual);
+
+  $year1 = date('Y', $ts1);
+  $year2 = date('Y', $ts2);
+
+  $month1 = date('m', $ts1);
+  $month2 = date('m', $ts2);
+
+  $diff = (($year2 - $year1) * 12) + ($month2 - $month1);
+  echo 'DIFERENCIA FECHA '. $diff;
+  return $diff; 
+}
+
+
+private function actualizarDeudaLiquidacion($id_pago_historico, $id_liquidacion_detalle, $mat_matricula ) {
+
+//ACTUALIZO LOS RENGLONES COMO PAGADOS Y CON  FECHA DE PAGO
+ $fecha = date('Y-m-d');
+  $res = DB::update( DB::raw("
+  UPDATE mat_pago_historico SET mat_estado = 'P',  mat_fecha_pago = '". $fecha."', id_usuario = 1 , id_liquidacion_detalle = ".$id_liquidacion_detalle." WHERE id_pago_historico IN  (".$id_pago_historico.") "));      
+
+}
+
+
+
+private function actualizarDeudaLiquidacionInteres($_id_pago_historico ) {
+  //ACTUALIZO LOS RENGLONES COMO PAGADOS Y CON  FECHA DE PAGO
+   $fecha = date('Y-m-d');
+    $res = DB::update( DB::raw("
+    UPDATE mat_pago_historico SET   mat_monto_cobrado = mat_monto , mat_monto = (mat_monto * ".$this->os_int_mora.") WHERE id_pago_historico IN  (".$_id_pago_historico.") "));      
+}
+
+
+  private function actualizarLiquidacionDetalleConceptos( $id_liquidacion_detalle ) {
+     $this->TOTAL_os_descuentos = $this->TOTAL_os_desc_matricula + $this->TOTAL_os_desc_fondo_sol + $this->TOTAL_os_otros_ing_eg;// valores cargados a mano para realizar correcciones , debitos  o creditos
+    
+    $this->saldo = $this->saldo - $this->TOTAL_os_desc_matricula - $this->TOTAL_os_desc_fondo_sol - $this->TOTAL_os_otros_ing_eg;
+
+      $res = DB::update( DB::raw("
+      UPDATE os_liq_liquidacion_detalle SET  os_ing_brutos = ".$this->TOTAL_os_ing_brutos.",
+      os_lote_hogar = ".$this->TOTAL_os_lote_hogar.", os_gasto_admin = ".$this->TOTAL_os_gasto_admin.", os_imp_cheque = ".$this->TOTAL_os_imp_cheque.",
+      os_descuentos = ".$this->TOTAL_os_descuentos.", os_desc_matricula = ".$this->TOTAL_os_desc_matricula.",
+      os_desc_fondo_sol = ".$this->TOTAL_os_desc_fondo_sol.",  os_otros_ing_eg = ".$this->TOTAL_os_otros_ing_eg.", 
+      os_liq_neto = ".$this->saldo." 
+         WHERE id_liquidacion_detalle  = (".$id_liquidacion_detalle.") "));      
+    
+    }
+
+  
+  public function recalcularPagoHistorico(Request $request ) {
+    //ACTUALIZO LOS RENGLONES COMO PAGADOS Y CON  FECHA DE PAGO
+    $id_liquidacion_generada = $request->input('id_liquidacion_generada');
+     $fecha = date('Y-m-d');
+      $res = DB::update( DB::raw("
+      UPDATE mat_pago_historico SET  mat_monto =  mat_monto_cobrado, mat_estado = 'A' , id_liquidacion_detalle = 0, id_liquidacion_generada = 0, mat_fecha_pago = '0000-00-00' WHERE id_liquidacion_generada IN  (".$id_liquidacion_generada.") "));      
+  }
+
 
 /* -------------------------------------------------------------------------- */
 /*           FIN FUNCIONES VALIDADORAS : TIENE SALDO, LISTADO DE DEUDA        */
@@ -302,17 +449,27 @@ private function tieneSaldo($saldo,$importe) {
 
 
 
-/* -------------------------------------------------------------------------- */
-/*   ACCIONES SOBRE LIQUIDACION : GENERAR NUMERO DE INGRESO BRUTOS - RECIBO   */
-/* -------------------------------------------------------------------------- */
+public function getOrdenByMatriculaAndLiquidacion(Request $request)
+{      
+  $mat_matricula = $request->input('mat_matricula');
+  $estado = $request->input('id_liquidacion');
 
-
-
-
-/* -------------------------------------------------------------------------- */
-/* FIN ACCIONES SOBRE LIQUIDACION : GENERAR NUMERO DE INGRESO BRUTOS - RECIBO */
-/* -------------------------------------------------------------------------- */
-
+  $res = DB::select( DB::raw("SELECT id_os_liq_orden, os_liq_orden.mat_matricula, os_liq_orden.id_obra_social, os_liq_orden.id_sesion, os_liq_orden.id_paciente, os_liq_orden.os_fecha, 
+  os_liq_orden.os_cantidad, os_liq_orden.os_precio_sesion, os_liq_orden.os_precio_total, os_liq_orden.os_estado_liquidacion, os_liq_orden.os_liq_numero, 
+  os_obra_social.os_nombre, os_sesion.id_sesion_tipo, os_sesion.id_precio, os_liq_liquidacion.os_liq_numero, 
+  os_liq_liquidacion.os_fecha_desde, os_liq_liquidacion.os_fecha_hasta, os_liq_liquidacion.id_os_liquidacion, pac_paciente.pac_nombre, pac_paciente.pac_dni, pac_paciente.pac_sexo 
+  FROM  os_liq_orden, os_obra_social, os_sesion, os_liq_liquidacion, pac_paciente 
+  WHERE   os_liq_orden.id_obra_social = os_obra_social.id 
+  AND os_liq_orden.id_sesion = os_sesion.id_sesion   
+  AND os_liq_liquidacion.id_os_liquidacion = os_liq_orden.os_liq_numero 
+  AND pac_paciente.id_paciente = os_liq_orden.id_paciente 
+  AND os_liq_liquidacion.id_liquidacion = :id_liquidacion 
+  AND os_liq_orden.mat_matricula = :mat_matricula
+  "),array('mat_matricula' => $mat_matricula,
+             'id_liquidacion ' => $id_liquidacion ));
+    
+      return response()->json($res, "200");
+}
 
 
     
@@ -362,6 +519,92 @@ private function tieneSaldo($saldo,$importe) {
         return response()->json($res, "200");
   }
 
+
+
+  public function generarLiquidacionDetalle(Request $request) {   
+   
+    $id_liquidacion =  $request->input('id_liquidacion');
+
+    $res = DB::select( DB::raw("SELECT os_liq_orden.mat_matricula, sum(os_precio_total) AS os_liq_bruto FROM os_liq_orden, os_liq_liquidacion WHERE  os_liq_orden.os_liq_numero = os_liq_liquidacion.id_os_liquidacion AND os_liq_liquidacion.id_liquidacion = :id_liquidacion GROUP BY os_liq_orden.mat_matricula
+     "), array(
+         'id_liquidacion' =>$id_liquidacion
+       ));
+       
+      var i = 0;
+    foreach ($this->res as $index => $_liquidacionOrden) {
+      $id =    DB::table('os_liq_liquidacion_detalle')->insertGetId([
+      
+        'mat_matricula' => $_liquidacionOrden->mat_matricula, 
+        'os_liq_bruto' => $_liquidacionOrden->os_liq_bruto,    
+        'os_liq_bruto' => 0,
+        'os_ing_brutos' => 0,
+        'os_lote_hogar' => 0,
+        'os_gasto_admin' => 0,
+        'os_imp_cheque' => 0,
+        'os_descuentos' => 0,
+        'os_desc_matricula' => 0,
+        'os_desc_fondo_sol' => 0,
+        'os_otros_ing_eg' => 0,
+        'os_liq_neto' => 0,
+        'num_comprobante' => 0,
+        'os_num_ing_bruto' => 0,
+        'id_liquidacion_generada' => $id_liquidacion             
+    ]);    
+
+    i++;
+  }
+  return response()->json('Se insertaron '.$i, "200");
+}
+
+
+
+public function setGenerarExpediente(Request $request){
+       
+  $tmp_fecha = str_replace('/', '-', $request->input('os_fecha_desde'));
+  $os_fecha_desde =  date('Y-m-d', strtotime($tmp_fecha)); 
+  $tmp_fecha = str_replace('/', '-', $request->input('os_fecha_hasta'));
+  $os_fecha_hasta =  date('Y-m-d', strtotime($tmp_fecha));
+
+  $id =    DB::table('os_liq_liquidacion')->insertGetId([ 
+    'id_os_obra_social' => $request->id_os_obra_social, 
+    'os_liq_numero' => $request->os_liq_numero,
+    'os_fecha_desde' => $os_fecha_desde,    
+    'os_fecha_hasta' => $os_fecha_hasta,
+    'os_cant_ordenes' => $request->os_cant_ordenes,
+    'os_monto_total' => $request->os_monto_total,
+    'os_estado' => $request->os_estado,
+    'id_liquidacion' => 0
+  ]);    
+return response()->json($res, "200");
+}
+
+
+
+
+
+public function putGenerarExpediente(Request $request, $id){
+       
+  $tmp_fecha = str_replace('/', '-', $request->input('os_fecha_desde'));
+  $os_fecha_desde =  date('Y-m-d', strtotime($tmp_fecha)); 
+  $tmp_fecha = str_replace('/', '-', $request->input('os_fecha_hasta'));
+  $os_fecha_hasta =  date('Y-m-d', strtotime($tmp_fecha)); 
+
+  $res =  DB::table('os_liq_liquidacion')
+  ->where('os_liq_liquidacion', $id)
+  ->update([   
+      'id_os_obra_social' => $request->input('id_os_obra_social'), 
+      'os_liq_numero' => $request->input('os_liq_numero'),
+      'os_fecha_desde' => $os_fecha_desde,    
+      'os_fecha_hasta' => $os_fecha_hasta,
+      'os_cant_ordenes' => $request->input('os_cant_ordenes'),
+      'os_monto_total' => $request->input('os_monto_total'),
+      'os_estado' => $request->input('os_estado'),
+      'id_liquidacion' => $request->input('id_liquidacion')
+  ]);    
+return response()->json($res, "200");
+}
+
+  
   public function auditarOrdenes(Request $request){
     $t =$request;
     $i = 0;
@@ -406,6 +649,8 @@ private function tieneSaldo($saldo,$importe) {
     return response()->json($id, "200");  
   }
 
+
+
   public function putOrden(Request $request, $id)
   {
 
@@ -434,6 +679,7 @@ private function tieneSaldo($saldo,$importe) {
 
     public function setDeuda(Request $request) {
 
+
         $tmp_fecha = str_replace('/', '-', $request->input('mat_fecha_pago'));
         $mat_fecha_pago =  date('Y-m-d', strtotime($tmp_fecha));   
         $tmp_fecha = str_replace('/', '-', $request->input('mat_fecha_vencimiento'));
@@ -458,6 +704,7 @@ private function tieneSaldo($saldo,$importe) {
           'id_usuario' => $request->id_usuario        
       ]);    
         return response()->json($id, "200");  
+
       }
       
 
