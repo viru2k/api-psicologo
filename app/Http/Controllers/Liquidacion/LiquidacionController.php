@@ -525,12 +525,14 @@ public function getOrdenByMatriculaAndLiquidacion(Request $request)
    
     $id_liquidacion =  $request->input('id_liquidacion');
 
-    $res = DB::select( DB::raw("SELECT os_liq_orden.mat_matricula, sum(os_precio_total) AS os_liq_bruto FROM os_liq_orden, os_liq_liquidacion WHERE  os_liq_orden.os_liq_numero = os_liq_liquidacion.id_os_liquidacion AND os_liq_liquidacion.id_liquidacion = :id_liquidacion GROUP BY os_liq_orden.mat_matricula
+    $res = DB::select( DB::raw("SELECT os_liq_orden.mat_matricula, sum(os_precio_total) AS os_liq_bruto 
+    FROM os_liq_orden, os_liq_liquidacion 
+    WHERE  os_liq_orden.os_liq_numero = os_liq_liquidacion.id_os_liquidacion AND os_liq_liquidacion.id_liquidacion = :id_liquidacion GROUP BY os_liq_orden.mat_matricula
      "), array(
          'id_liquidacion' =>$id_liquidacion
        ));
        
-      var i = 0;
+       $i = 0;
     foreach ($this->res as $index => $_liquidacionOrden) {
       $id =    DB::table('os_liq_liquidacion_detalle')->insertGetId([
       
@@ -551,11 +553,10 @@ public function getOrdenByMatriculaAndLiquidacion(Request $request)
         'id_liquidacion_generada' => $id_liquidacion             
     ]);    
 
-    i++;
+    $i++;
   }
   return response()->json('Se insertaron '.$i, "200");
 }
-
 
 
 public function setGenerarExpediente(Request $request){
@@ -580,8 +581,6 @@ return response()->json($res, "200");
 
 
 
-
-
 public function putGenerarExpediente(Request $request, $id){
        
   $tmp_fecha = str_replace('/', '-', $request->input('os_fecha_desde'));
@@ -602,6 +601,7 @@ public function putGenerarExpediente(Request $request, $id){
       'id_liquidacion' => $request->input('id_liquidacion')
   ]);    
 return response()->json($res, "200");
+
 }
 
   
@@ -616,13 +616,11 @@ return response()->json($res, "200");
        //'usuario_audita_id' => $t[$i]["usuario_audita_id"],
             ]);  
           $i++;
-
     }
 
     return response()->json($i, "201");
 
 }
-
 
 
   public function setOrden(Request $request) {
@@ -690,7 +688,7 @@ return response()->json($res, "200");
           'mat_matricula' => $request->mat_matricula, 
           'mat_fecha_pago' => $mat_fecha_pago,    
           'mat_fecha_vencimiento' => $mat_fecha_vencimiento,    
-          'mat_monto' => $request->mat_monto, mat_interes,    
+          'mat_monto' => $request->mat_monto,    
           'mat_monto_cobrado' => $request->mat_monto_cobrado,    
           'mat_num_cuota' => $request->mat_num_cuota,    
           'mat_descripcion' => $request->mat_descripcion,    

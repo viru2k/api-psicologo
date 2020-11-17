@@ -86,8 +86,10 @@ Route::name('cobros')->get('cobro/by/matricula/estado', 'Cobro\CobroController@g
 Route::name('cobros')->get('cobro/by/matricula/plan', 'Cobro\CobroController@getDeudaByPlanAndMatricula'); 
 Route::name('cobros')->get('cobro/by/matricula/by/dates', 'Cobro\CobroController@getDeudaBydMatriculaBetweenDates');  
 Route::name('cobros')->get('cobro/plan', 'Cobro\CobroController@getPlanes');
-Route::name('cobros')->post('cobro/by/matricula/actualizar',  'Cobro\CobroController@putDeuda'); 
+Route::name('cobros')->put('cobro/by/matricula/actualizar/{id}',  'Cobro\CobroController@putDeuda'); 
 Route::name('cobros')->post('cobro/by/matricula', 'Cobro\CobroController@setDeuda');
+Route::name('cobros')->put('cobro/by/matricula/cobrar/{id}',  'Cobro\CobroController@putRegistroCobro'); 
+
 });
 
 

@@ -53,7 +53,7 @@ class CobroController extends ApiController
     }
 
 
-    public function putDeuda(Request $request, $id)
+    public function putConcepto(Request $request, $id)
     {
       $res =  DB::table('mat_concepto')
       ->where('id_concepto', $id)
@@ -87,9 +87,11 @@ class CobroController extends ApiController
         $estado = $request->input('estado');
 
       $res = DB::select( DB::raw("SELECT id_pago_historico, mat_matricula, CONCAT(mat_matricula.mat_apellido, ' ' , mat_matricula.mat_nombre) AS mat_nombreyapellido, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_interes, mat_pago_historico.mat_descripcion, 
-      mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto 
-      FROM `mat_pago_historico`, mat_concepto, mat_matricula  WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo 
+      mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto , nombreyapellido
+      FROM `mat_pago_historico`, mat_concepto, mat_matricula  , users
+      WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo 
       AND mat_concepto.id_concepto = mat_pago_historico.id_concepto 
+      AND users.id = mat_pago_historico.id_usuario
       AND mat_matricula.mat_matricula_psicologo = :mat_matricula
       "),array('mat_matricula' => $mat_matricula));
       
@@ -102,9 +104,11 @@ class CobroController extends ApiController
         $estado = $request->input('estado');
 
       $res = DB::select( DB::raw("SELECT id_pago_historico, mat_matricula, CONCAT(mat_matricula.mat_apellido, ' ' , mat_matricula.mat_nombre) AS mat_nombreyapellido, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_interes, mat_pago_historico.mat_descripcion, 
-      mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto 
-      FROM `mat_pago_historico`, mat_concepto, mat_matricula  WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo 
+      mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto , nombreyapellido
+      FROM `mat_pago_historico`, mat_concepto, mat_matricula   , users
+      WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo
       AND mat_concepto.id_concepto = mat_pago_historico.id_concepto 
+      AND users.id = mat_pago_historico.id_usuario
       AND mat_matricula.mat_matricula_psicologo = :mat_matricula
       AND mat_estado = :estado
       "),array('mat_matricula' => $mat_matricula,
@@ -119,9 +123,11 @@ class CobroController extends ApiController
         $mat_matricula = $request->input('mat_matricula');
         $mat_id_plan = $request->input('mat_id_plan');
       $res = DB::select( DB::raw("SELECT id_pago_historico, mat_matricula, CONCAT(mat_matricula.mat_apellido, ' ' , mat_matricula.mat_nombre) AS mat_nombreyapellido, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_interes, mat_pago_historico.mat_descripcion, 
-      mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto 
-      FROM `mat_pago_historico`, mat_concepto, mat_matricula  WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo 
+      mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto , nombreyapellido
+      FROM `mat_pago_historico`, mat_concepto, mat_matricula , users
+      WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo 
       AND mat_concepto.id_concepto = mat_pago_historico.id_concepto 
+      AND users.id = mat_pago_historico.id_usuario
       AND mat_matricula.mat_matricula_psicologo =  :mat_matricula
       AND mat_id_plan = :mat_id_plan
       "),array('mat_matricula' => $mat_matricula,
@@ -136,8 +142,10 @@ class CobroController extends ApiController
     {      
 
       $res = DB::select( DB::raw("SELECT id_pago_historico, mat_matricula, CONCAT(mat_matricula.mat_apellido, ' ' , mat_matricula.mat_nombre) AS mat_nombreyapellido, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_interes, mat_pago_historico.mat_descripcion, 
-      mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto 
-      FROM `mat_pago_historico`, mat_concepto, mat_matricula  WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo 
+      mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto , nombreyapellido
+      FROM `mat_pago_historico`, mat_concepto, mat_matricula  , users
+      WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo 
+      AND users.id = mat_pago_historico.id_usuario
       AND mat_concepto.id_concepto = mat_pago_historico.id_concepto       
       AND mat_id_plan !=0 GROUP BY mat_pago_historico.mat_id_plan
       "));
@@ -155,20 +163,44 @@ class CobroController extends ApiController
         $estado = $request->input('estado');
       if ($estado === 'todos') {
         $res = DB::select( DB::raw("SELECT id_pago_historico, mat_matricula, CONCAT(mat_matricula.mat_apellido, ' ' , mat_matricula.mat_nombre) AS mat_nombreyapellido, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_interes, mat_pago_historico.mat_descripcion, 
-        mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto 
-        FROM `mat_pago_historico`, mat_concepto, mat_matricula  WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo 
+        mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto, nombreyapellido
+        FROM `mat_pago_historico`, mat_concepto, mat_matricula,users  
+        WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo 
         AND mat_concepto.id_concepto = mat_pago_historico.id_concepto
-        AND mat_fecha_pago BETWEEN :fecha_desde AND :fecha_hasta
+        AND users.id = mat_pago_historico.id_usuario
+        AND mat_Fecha_vencimiento BETWEEN :fecha_desde AND :fecha_hasta
       "), array(
           'fecha_desde' =>$fecha_desde,
           'fecha_hasta' => $fecha_hasta
         ));
-      } else {
+      } 
+      
+      if ($estado === 'A') {
 
         $res = DB::select( DB::raw("SELECT id_pago_historico, mat_matricula, CONCAT(mat_matricula.mat_apellido, ' ' , mat_matricula.mat_nombre) AS mat_nombreyapellido, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_interes, mat_pago_historico.mat_descripcion, 
-        mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto 
-        FROM `mat_pago_historico`, mat_concepto, mat_matricula  WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo 
+        mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto , nombreyapellido
+        FROM `mat_pago_historico`, mat_concepto, mat_matricula, users 
+        WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo 
         AND mat_concepto.id_concepto = mat_pago_historico.id_concepto
+        AND users.id = mat_pago_historico.id_usuario
+        AND mat_estado = :estado
+        AND mat_Fecha_vencimiento BETWEEN :fecha_desde AND :fecha_hasta
+      "), array(
+          'fecha_desde' =>$fecha_desde,
+          'fecha_hasta' => $fecha_hasta,
+          'estado' => $estado 
+        ));
+
+      }
+
+      if ($estado === 'P'){
+
+        $res = DB::select( DB::raw("SELECT id_pago_historico, mat_matricula, CONCAT(mat_matricula.mat_apellido, ' ' , mat_matricula.mat_nombre) AS mat_nombreyapellido, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_interes, mat_pago_historico.mat_descripcion, 
+        mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto , nombreyapellido
+        FROM `mat_pago_historico`, mat_concepto, mat_matricula, users 
+        WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo 
+        AND mat_concepto.id_concepto = mat_pago_historico.id_concepto
+        AND users.id = mat_pago_historico.id_usuario
         AND mat_estado = :estado
         AND mat_fecha_pago BETWEEN :fecha_desde AND :fecha_hasta
       "), array(
@@ -184,14 +216,46 @@ class CobroController extends ApiController
           return response()->json($res, "200");
     }
 
+
+
+    
+    public function putDeuda(Request $request, $id)
+    {
+
+      $tmp_fecha = str_replace('/', '-', $request->input('mat_fecha_pago'));
+      $mat_fecha_pago =  date('Y-m-d', strtotime($tmp_fecha));   
+      $tmp_fecha = str_replace('/', '-', $request->input('mat_fecha_vencimiento'));
+      $mat_fecha_vencimiento =  date('Y-m-d', strtotime($tmp_fecha));   
+  //    echo '-'. $request->input('mat_monto'). '-';
+  echo $id;
+      $res =  DB::table('mat_pago_historico')
+      ->where('id_pago_historico', $id)
+      ->update([        
+        'mat_fecha_pago' => $mat_fecha_pago,
+        'mat_fecha_vencimiento' => $mat_fecha_vencimiento,
+        'mat_monto' => $request->input('mat_monto'),
+        'mat_monto_cobrado' => $request->input('mat_monto'),
+        'mat_num_cuota' => $request->input('mat_num_cuota'),
+        'mat_descripcion' => $request->input('mat_descripcion'),
+        'mat_id_plan' => $request->input('mat_id_plan'),
+        'mat_numero_comprobante' => $request->input('mat_numero_comprobante'),
+        'mat_numero_recibo' => $request->input('mat_numero_comprobante'),
+        'mat_estado_recibo' => '',
+        'mat_tipo_pago' => $request->input('mat_tipo_pago'),
+        'mat_estado' => $request->input('mat_estado')
+        
+       // ,'id_usuario' => $request->input('id_usuario')        
+        ]);        
+        return response()->json($res, "200"); 
+    }
  
 
 
     public function setDeuda(Request $request) {
 
-      $tmp_fecha = str_replace('/', '-', $request->input('mat_fecha_pago'));
+      $tmp_fecha = str_replace('/', '-', $request->mat_fecha_pago);
       $mat_fecha_pago =  date('Y-m-d', strtotime($tmp_fecha));   
-      $tmp_fecha = str_replace('/', '-', $request->input('mat_fecha_vencimiento'));
+      $tmp_fecha = str_replace('/', '-', $request->mat_fecha_vencimiento);
       $mat_fecha_vencimiento =  date('Y-m-d', strtotime($tmp_fecha));   
   
       $id =    DB::table('mat_pago_historico')->insertGetId([
@@ -199,7 +263,7 @@ class CobroController extends ApiController
         'mat_matricula' => $request->mat_matricula, 
         'mat_fecha_pago' => $mat_fecha_pago,    
         'mat_fecha_vencimiento' => $mat_fecha_vencimiento,    
-        'mat_monto' => $request->mat_monto, mat_interes,    
+        'mat_monto' => $request->mat_monto,
         'mat_monto_cobrado' => $request->mat_monto_cobrado,    
         'mat_num_cuota' => $request->mat_num_cuota,    
         'mat_descripcion' => $request->mat_descripcion,    
@@ -207,12 +271,51 @@ class CobroController extends ApiController
         'id_concepto' => $request->id_concepto,    
         'mat_numero_comprobante' => $request->mat_numero_comprobante,    
         'mat_numero_recibo' => $request->mat_numero_recibo,    
-        'mat_estado_recibo' => $request->mat_estado_recibo,    
+        'mat_estado_recibo' => '',    
         'mat_tipo_pago' => $request->mat_tipo_pago,    
         'mat_estado' => $request->mat_estado,    
         'id_usuario' => $request->id_usuario        
     ]);    
       return response()->json($id, "200");  
+    }
+
+
+     
+
+      
+    public function putRegistroCobro(Request $request, $id)
+    {
+     //   $tmp_fecha = str_replace('/', '-', $request["os_fecha_desde"]);
+     //   $os_fecha_desde =  date('Y-m-d', strtotime($tmp_fecha));    
+     //   $tmp_fecha = str_replace('/', '-', $request["os_fecha_hasta"]);
+     //   $os_fecha_hasta =  date('Y-m-d', strtotime($tmp_fecha));    
+        
+
+  $i = 0;
+    while(isset($request[$i])){            
+   // echo  $request[$i]["mat_monto"];
+        $tmp_fecha = str_replace('/', '-', $request[$i]["mat_fecha_pago"]);
+        $mat_fecha_pago =  date('Y-m-d', strtotime($tmp_fecha)); 
+
+        $update = DB::table('mat_pago_historico')         
+        ->where('id_pago_historico', $request[$i]['id_pago_historico']) ->limit(1) 
+        ->update( [            
+         
+        'mat_fecha_pago' => $mat_fecha_pago,        
+        'mat_monto' => $request[$i]['mat_monto'],
+        'mat_monto_cobrado' => $request[$i]['mat_monto'],     
+        'mat_numero_comprobante' => $request[$i]['mat_numero_comprobante'],
+        'mat_numero_recibo' => $request[$i]['mat_numero_comprobante'],
+        'mat_tipo_pago' => $request[$i]['mat_tipo_pago'],
+        'mat_estado' => $request[$i]['mat_estado'],
+        'id_usuario' => $request[$i]['id_usuario']        
+          ]);   
+            $i++;
+
+        }
+        //echo  $request->registros[0]["id"];
+   //   return response()->json($liquidacion_numero, 201);        
+ 
     }
 
 }
