@@ -84,7 +84,7 @@ class CobroController extends ApiController
     public function getDeudaByMatricula(Request $request)
     {      
         $mat_matricula = $request->input('mat_matricula');
-        $estado = $request->input('estado');
+        
 
       $res = DB::select( DB::raw("SELECT id_pago_historico, mat_matricula, CONCAT(mat_matricula.mat_apellido, ' ' , mat_matricula.mat_nombre) AS mat_nombreyapellido, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_interes, mat_pago_historico.mat_descripcion, 
       mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto , nombreyapellido
@@ -92,7 +92,7 @@ class CobroController extends ApiController
       WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo 
       AND mat_concepto.id_concepto = mat_pago_historico.id_concepto 
       AND users.id = mat_pago_historico.id_usuario
-      AND mat_matricula.mat_matricula_psicologo = :mat_matricula
+      AND mat_matricula.mat_matricula_psicologo = :mat_matricula      
       "),array('mat_matricula' => $mat_matricula));
       
           return response()->json($res, "200");
@@ -271,13 +271,51 @@ class CobroController extends ApiController
         'id_concepto' => $request->id_concepto,    
         'mat_numero_comprobante' => $request->mat_numero_comprobante,    
         'mat_numero_recibo' => $request->mat_numero_recibo,    
-        'mat_estado_recibo' => '',    
+        'mat_estado_recibo' => 'A',    
         'mat_tipo_pago' => $request->mat_tipo_pago,    
         'mat_estado' => $request->mat_estado,    
         'id_usuario' => $request->id_usuario        
     ]);    
       return response()->json($id, "200");  
     }
+
+
+    public function setDeudaRegistros(Request $request) {
+
+
+      $i = 0;
+
+      while(isset($request[$i])){    
+         $tmp_fecha = str_replace('/', '-', $request[$i]['mat_fecha_pago']);
+        $mat_fecha_pago =  date('Y-m-d', strtotime($tmp_fecha));   
+        $tmp_fecha = str_replace('/', '-', $request[$i]['mat_fecha_vencimiento']);
+        $mat_fecha_vencimiento =  date('Y-m-d', strtotime($tmp_fecha));           
+        $id =    DB::table('mat_pago_historico')->insertGetId([
+          
+          'mat_matricula' => $request[$i]['mat_matricula'], 
+          'mat_fecha_pago' => $mat_fecha_pago,    
+          'mat_fecha_vencimiento' => $mat_fecha_vencimiento,    
+          'mat_monto' => $request[$i]['mat_monto'],
+          'mat_monto_cobrado' => $request[$i]['mat_monto_cobrado'],    
+          'mat_num_cuota' => $request[$i]['mat_num_cuota'],    
+          'mat_descripcion' => $request[$i]['mat_descripcion'],    
+          'mat_id_plan' => $request[$i]['mat_id_plan'],    
+          'id_concepto' => $request[$i]['id_concepto'],    
+          'mat_numero_comprobante' => $request[$i]['mat_numero_comprobante'],    
+          'mat_numero_recibo' => 0,    
+          'mat_estado_recibo' => 'A',    
+          'mat_tipo_pago' => $request[$i]['mat_tipo_pago'],    
+          'mat_estado' => $request[$i]['mat_estado'],    
+          'id_usuario' => $request[$i]['id_usuario']        
+      ]);     
+
+      $i++;
+     }
+
+     
+      return response()->json($id, "200");  
+    }
+
 
 
      

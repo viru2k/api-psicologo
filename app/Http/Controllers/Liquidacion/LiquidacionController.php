@@ -480,7 +480,7 @@ public function getOrdenByMatriculaAndLiquidacion(Request $request)
 
     $res = DB::select( DB::raw("SELECT id_os_liq_orden, mat_matricula,CONCAT(mat_matricula.mat_apellido, ' ',mat_matricula.mat_nombre ) AS mat_apellido_nombre, os_liq_orden.id_sesion,  
    os_fecha, os_cantidad, os_precio_sesion, os_precio_total, os_estado_liquidacion, os_liq_numero, os_sesion_tipo.os_sesion, os_sesion_tipo.os_sesion_codigo, pac_paciente.id_paciente,
-   pac_paciente.pac_nombre, pac_paciente.pac_dni, pac_paciente.pac_dni
+   pac_paciente.pac_nombre, pac_paciente.pac_dni, pac_paciente.pac_dni,  os_obra_social.os_nombre
    FROM os_liq_orden, mat_matricula, os_obra_social, os_sesion, os_sesion_tipo, pac_paciente 
    WHERE os_liq_orden.mat_matricula = mat_matricula.mat_matricula_psicologo  
    AND os_liq_orden.id_obra_social = os_obra_social.id AND os_liq_orden.id_sesion = os_sesion.id_sesion 
@@ -505,7 +505,7 @@ public function getOrdenByMatriculaAndLiquidacion(Request $request)
 
     $res = DB::select( DB::raw("SELECT id_os_liq_orden, mat_matricula,CONCAT(mat_matricula.mat_apellido, ' ',mat_matricula.mat_nombre ) AS mat_apellido_nombre, os_liq_orden.id_sesion,  
    os_fecha, os_cantidad, os_precio_sesion, os_precio_total, os_estado_liquidacion, os_liq_numero, os_sesion_tipo.os_sesion, os_sesion_tipo.os_sesion_codigo, pac_paciente.id_paciente,
-   pac_paciente.pac_nombre, pac_paciente.pac_dni, pac_paciente.pac_dni
+   pac_paciente.pac_nombre, pac_paciente.pac_dni, pac_paciente.pac_dni, os_obra_social.os_nombre
    FROM os_liq_orden, mat_matricula, os_obra_social, os_sesion, os_sesion_tipo, pac_paciente 
    WHERE os_liq_orden.mat_matricula = mat_matricula.mat_matricula_psicologo  
    AND os_liq_orden.id_obra_social = os_obra_social.id AND os_liq_orden.id_sesion = os_sesion.id_sesion 
