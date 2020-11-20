@@ -439,7 +439,7 @@ private function actualizarDeudaLiquidacionInteres($_id_pago_historico ) {
     $id_liquidacion_generada = $request->input('id_liquidacion_generada');
      $fecha = date('Y-m-d');
       $res = DB::update( DB::raw("
-      UPDATE mat_pago_historico SET  mat_monto =  mat_monto_cobrado, mat_estado = 'A' , id_liquidacion_detalle = 0, id_liquidacion_generada = 0, mat_fecha_pago = '0000-00-00' WHERE id_liquidacion_generada IN  (".$id_liquidacion_generada.") "));      
+      UPDATE mat_pago_historico SET  mat_monto =  mat_monto_cobrado, mat_estado = 'A' , id_liquidacion_detalle = 0, id_liquidacion_generada = 0, mat_fecha_pago = '2099-12-31' WHERE id_liquidacion_generada IN  (".$id_liquidacion_generada.") "));      
   }
 
 

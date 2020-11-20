@@ -77,6 +77,8 @@ Route::name('obra-social')->get('obra/social/convenio', 'ObraSocial\ObraSocialCo
 
 
 Route::group(['middleware' => 'admin'], function () {
+
+    
 Route::name('concepto')->get('concepto', 'Cobro\CobroController@getConcepto'); 
 Route::name('concepto')->post('concepto',  'Cobro\CobroController@setConcepto'); 
 Route::name('concepto')->put('concepto/{id}',  'Cobro\CobroController@putConcepto'); 
@@ -91,6 +93,8 @@ Route::name('cobros')->post('cobro/by/matricula', 'Cobro\CobroController@setDeud
 Route::name('cobros')->post('cobro/by/matricula/registros/nuevos', 'Cobro\CobroController@setDeudaRegistros');
 Route::name('cobros')->put('cobro/by/matricula/cobrar/{id}',  'Cobro\CobroController@putRegistroCobro'); 
 
+Route::name('plan')->get('plan/ultimo', 'Cobro\CobroController@getUltimoPlanPago');     
+Route::name('plan')->post('plan/by/matricula', 'Cobro\CobroController@setPlanPagoMatricula'); 
 });
 
 

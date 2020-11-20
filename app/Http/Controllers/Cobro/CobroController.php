@@ -32,6 +32,68 @@ class CobroController extends ApiController
     */
 
 
+/* -------------------------------------------------------------------------- */
+/*                                PLAN DE PLAGO                               */
+/* -------------------------------------------------------------------------- */
+
+    public function getUltimoPlanPago()
+    {      
+      $res = DB::select( DB::raw("SELECT max(`mat_id_plan`) as ultimo FROM `mat_pago_historico` WHERE 1
+      "));
+      
+          return response()->json($res, "200");
+    }
+
+    public function setPlanPagoMatricula(Request $request) {
+
+      $i = 0;
+      $j = 0;
+   //   var_dump($request->concepto[0]);
+       while(isset($request->concepto[$i])){   
+        //echo 'concepto '.$request->concepto[$i]["mat_matricula"];
+        $update = DB::table('mat_pago_historico')         
+        ->where('id_pago_historico', $request->concepto[$i]['id_pago_historico']) ->limit(1) 
+        ->update( [                 
+        'mat_estado' => 'P',
+        'id_usuario' => $request->concepto[$i]['id_usuario']        
+          ]); 
+        $i++;
+      }  
+
+      while(isset($request->plan[$j])){   
+
+
+        $id =    DB::table('mat_pago_historico')->insertGetId([
+          
+          'mat_matricula' => $request->plan[$j]['mat_matricula'], 
+          'mat_fecha_pago' => $request->plan[$j]['mat_fecha_pago'],    
+          'mat_fecha_vencimiento' => $request->plan[$j]['mat_fecha_vencimiento'],    
+          'mat_monto' => $request->plan[$j]['mat_monto'],
+          'mat_monto_cobrado' => $request->plan[$j]['mat_monto_cobrado'],    
+          'mat_num_cuota' => $request->plan[$j]['mat_num_cuota'],    
+          'mat_descripcion' => $request->plan[$j]['mat_descripcion'],    
+          'mat_id_plan' => $request->plan[$j]['mat_id_plan'],    
+          'id_concepto' => $request->plan[$j]['id_concepto'],    
+          'mat_numero_comprobante' => $request->plan[$j]['mat_numero_comprobante'],    
+          'mat_numero_recibo' => 0,    
+          'mat_estado_recibo' => 'A',    
+          'mat_tipo_pago' => $request->plan[$j]['mat_tipo_pago'],    
+          'mat_estado' => $request->plan[$j]['mat_estado'],    
+          'id_usuario' => $request->plan[$j]['id_usuario']        
+      ]);   
+
+      //  echo 'plan '. $request->plan[$j]["mat_matricula"];
+        $j++;
+      } 
+      return response()->json('ok', "200");
+    }
+    
+
+/* -------------------------------------------------------------------------- */
+/*                                  CONCEPTOS                                 */
+/* -------------------------------------------------------------------------- */
+
+
     public function getConcepto(Request $request)
     {      
       $res = DB::select( DB::raw("SELECT `id_concepto`, `mat_concepto`, `mat_monto`, `mat_interes`, `mat_descripcion` FROM `mat_concepto` WHERE 1
@@ -39,6 +101,9 @@ class CobroController extends ApiController
       
           return response()->json($res, "200");
     }
+
+
+
 
     public function setConcepto(Request $request) {
 
