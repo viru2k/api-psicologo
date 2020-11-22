@@ -59,6 +59,54 @@ var $TOTAL_os_desc_fondo_sol = 0; // descuentos de fondo solidario
 var $TOTAL_os_otros_ing_eg = 0; // otros movimientos
 
 
+
+/* -------------------------------------------------------------------------- */
+/*                               CALCULAR BRUTO                               */
+/* -------------------------------------------------------------------------- */
+
+
+public function calcularBruto(Request $request)
+{      
+  $id_liquidacion = $request->input('id_liquidacion');
+  
+
+  $resp_bruto = DB::select( DB::raw("SELECT mat_matricula , SUM(os_precio_total) AS total 
+  FROM `os_liq_liquidacion`, os_liq_orden 
+  WHERE os_liq_liquidacion.id_os_liquidacion = os_liq_orden.os_liq_numero and os_liq_liquidacion.id_liquidacion = :id_liquidacion  GROUP by mat_matricula
+  ORDER BY `os_liq_orden`.`mat_matricula` ASC
+  "),array('id_liquidacion' => $id_liquidacion));
+
+
+foreach ($resp_bruto as $index => $_resp_bruto) {
+
+  //echo $_resp_bruto->mat_matricula;
+ 
+  $id =    DB::table('os_liq_liquidacion_detalle')->insertGetId([
+      
+    'mat_matricula' => $_resp_bruto->mat_matricula, 
+    'os_liq_bruto' => $_resp_bruto->total,        
+    'os_ing_brutos' => 0,
+    'os_lote_hogar' => 0,
+    'os_gasto_admin' => 0,
+    'os_imp_cheque' => 0,
+    'os_descuentos' => 0,
+    'os_desc_matricula' => 0,
+    'os_desc_fondo_sol' => 0,
+    'os_otros_ing_eg' => 0,
+    'os_liq_neto' => 0,
+    'num_comprobante' => 0,
+    'os_num_ing_bruto' => 0,
+    'id_liquidacion_generada' => $id_liquidacion             
+]);     
+
+
+}
+    
+      return response()->json($resp_bruto, "200");
+}
+
+
+
 /* -------------------------------------------------------------------------- */
 /*                                  LIQUIDAR                                  */
 /* -------------------------------------------------------------------------- */
@@ -67,6 +115,7 @@ public function liquidar(Request $request)
 {     
   $_registros = 0;
   $id_liquidacion_generada = $request->input('id_liquidacion_generada');
+  $descuenta_matricula = $request->input('descuenta_matricula');
   //$matriculados = $this->obtenerMatriculas(); POR AHORA NO ES NECESARIO
   $this->liquidacionDetalle = $this->obtenerLiquidacionDetalle($id_liquidacion_generada); // DEBE VENIR DEL REQUEST
   $this->concepto = $this->obtenerConcepto();
@@ -285,13 +334,13 @@ private function calcularPercepciones($_liquidacionDetalle) {
       }
 
       if ($this->tieneSaldo($_saldo_restante, ($_saldo_restante * $this->os_gasto_admin))) {
-        $this->TOTAL_os_gasto_admin = ($_saldo_restante * $this->os_gasto_admin); 
+        $this->TOTAL_os_gasto_admin = ($_liquidacionDetalle->os_liq_bruto * $this->os_gasto_admin); 
         echo 'ga'. round($this->TOTAL_os_gasto_admin,2,PHP_ROUND_HALF_UP). ' ';
         $_saldo_restante = $_saldo_restante - ($_saldo_restante * $this->os_gasto_admin);
       }
 
       if ($this->tieneSaldo($_saldo_restante,$this->os_imp_cheque)) {
-      $this->TOTAL_os_imp_cheque = ($_saldo_restante * $this->os_imp_cheque); 
+      $this->TOTAL_os_imp_cheque = ($_liquidacionDetalle->os_liq_bruto * $this->os_imp_cheque); 
       $_saldo_restante = $_saldo_restante - ($_saldo_restante * $this->os_imp_cheque);
       }
   // echo 'ing_brutos'. round($this->TOTAL_os_ing_brutos,2,PHP_ROUND_HALF_UP). ' ';
@@ -434,6 +483,7 @@ private function actualizarDeudaLiquidacionInteres($_id_pago_historico ) {
     }
 
   
+    
   public function recalcularPagoHistorico(Request $request ) {
     //ACTUALIZO LOS RENGLONES COMO PAGADOS Y CON  FECHA DE PAGO
     $id_liquidacion_generada = $request->input('id_liquidacion_generada');
@@ -446,6 +496,21 @@ private function actualizarDeudaLiquidacionInteres($_id_pago_historico ) {
 /* -------------------------------------------------------------------------- */
 /*           FIN FUNCIONES VALIDADORAS : TIENE SALDO, LISTADO DE DEUDA        */
 /* -------------------------------------------------------------------------- */
+
+
+
+public function getLiquidacionDetalleByidLiquidacion(Request $request)
+{        
+  $id_liquidacion_generada = $request->input('id_liquidacion_generada');
+  $res = DB::select( DB::raw("SELECT id_liquidacion_detalle, mat_matricula, os_liq_bruto, os_ing_brutos, os_lote_hogar, os_gasto_admin, os_imp_cheque, 
+  os_descuentos, os_desc_matricula, os_desc_fondo_sol, os_otros_ing_eg, os_liq_neto, num_comprobante, os_num_ing_bruto, os_liq_liquidacion_generada.id_liquidacion_generada, 
+  os_liq_liquidacion_generada.id_liquidacion ,os_liq_liquidacion_generada.os_fecha 
+  FROM  os_liq_liquidacion_detalle, os_liq_liquidacion_generada 
+  WHERE  os_liq_liquidacion_detalle.id_liquidacion_generada = os_liq_liquidacion_generada.id_liquidacion_generada AND os_liq_liquidacion_generada.id_liquidacion_generada = ".$id_liquidacion_generada."
+  "));
+    
+      return response()->json($res, "200");
+}
 
 
 
@@ -741,11 +806,42 @@ return response()->json($res, "200");
  
     }
 
+/* -------------------------------------------------------------------------- */
+/*                                 EXPEDIENTES                                */
+/* -------------------------------------------------------------------------- */
+
+
+public function getExpedienteByEstado(Request $request)
+{        
+  $estado = $request->input('estado');
+
+  $res = DB::select( DB::raw("SELECT  `id_os_liquidacion`, `id_os_obra_social`, `os_liq_numero`, `os_fecha_desde`, `os_fecha_hasta`, `os_cant_ordenes`, `os_monto_total`, `os_estado`, `id_liquidacion`, os_nombre 
+  FROM `os_liq_liquidacion`, os_obra_social
+  WHERE  os_liq_liquidacion.id_os_obra_social = os_obra_social.id AND os_estado = :estado ORDER BY id_os_liquidacion
+  "),array('estado' => $estado));
+    
+      return response()->json($res, "200");
+}
+
+
+
+public function getExpedienteByIdLiquidacion(Request $request)
+{        
+  $id_liquidacion = $request->input('id_liquidacion');
+
+  $res = DB::select( DB::raw("SELECT  `id_os_liquidacion`, `id_os_obra_social`, `os_liq_numero`, `os_fecha_desde`, `os_fecha_hasta`, `os_cant_ordenes`, `os_monto_total`, `os_estado`, os_liq_liquidacion_generada.id_liquidacion, os_liq_liquidacion_generada.id_liquidacion_generada, os_nombre 
+  FROM `os_liq_liquidacion`, os_obra_social, os_liq_liquidacion_generada
+  WHERE  os_liq_liquidacion.id_os_obra_social = os_obra_social.id AND os_liq_liquidacion_generada.id_liquidacion_generada = os_liq_liquidacion.id_liquidacion AND os_liq_liquidacion_generada.id_liquidacion_generada = :id_liquidacion ORDER BY id_os_liquidacion DESC
+  "),array('id_liquidacion' => $id_liquidacion));
+    
+      return response()->json($res, "200");
+}
+
 
         
     public function putExpediente(Request $request, $id)
     {                   
-      $tmp_fecha = str_replace('/', '-', $request["os_fecha_desde"]);
+        $tmp_fecha = str_replace('/', '-', $request["os_fecha_desde"]);
         $os_fecha_desde =  date('Y-m-d', strtotime($tmp_fecha));    
         $tmp_fecha = str_replace('/', '-', $request["os_fecha_hasta"]);
         $os_fecha_hasta =  date('Y-m-d', strtotime($tmp_fecha));    
@@ -779,4 +875,49 @@ return response()->json($res, "200");
         DB::table('os_liq_liquidacion')->where('id_os_liquidacion', '=', $os_liq_numero)->delete();
         return response()->json("registro desafectado", 201);      
       }
+
+
+/* -------------------------------------------------------------------------- */
+/*                           ACCIONES PARA LIQUIDAR                           */
+/* -------------------------------------------------------------------------- */
+
+
+
+public function getLiquidaciones(Request $request) {        
+ 
+
+  $res = DB::select( DB::raw("SELECT `id_liquidacion_generada`, `id_liquidacion`, `os_fecha`, `os_liq_estado` FROM `os_liq_liquidacion_generada` ORDER BY  id_liquidacion_generada DESC
+  "));
+    
+      return response()->json($res, "200");
+}
+
+
+    
+public function generarLiquidacion(Request $request) {
+
+  $i = 0;
+
+  $id_liquidacion = $request->input('id_liquidacion');
+  $tmp_fecha = str_replace('/', '-', $request["os_fecha"]);
+  $os_fecha =  date('Y-m-d', strtotime($tmp_fecha)); 
+
+   $id_liquidacion= DB::table('os_liq_liquidacion_generada')->insertGetId([    
+    'id_liquidacion' => $id_liquidacion,        
+    'os_fecha' => $os_fecha,
+    'os_liq_estado' => 'L'
+]);      
+
+   while(isset($request[$i])){ 
+  //  echo $request[$i]['id_os_obra_social'];
+    $update = DB::table('os_liq_liquidacion')         
+    ->where('id_os_liquidacion', $request[$i]['id_os_liquidacion']) ->limit(1) 
+    ->update( [                 
+    'id_liquidacion' => $id_liquidacion
+      ]);  
+    $i++;
+  }  
+
+  return response()->json('ok', "200");
+}
 }

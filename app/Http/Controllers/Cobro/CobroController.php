@@ -44,6 +44,8 @@ class CobroController extends ApiController
           return response()->json($res, "200");
     }
 
+
+    
     public function setPlanPagoMatricula(Request $request) {
 
       $i = 0;

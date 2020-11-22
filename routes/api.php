@@ -103,11 +103,21 @@ Route::name('plan')->post('plan/by/matricula', 'Cobro\CobroController@setPlanPag
 /* -------------------------------------------------------------------------- */
 
 Route::group(['middleware' => 'admin'], function () {
+
+Route::name('liquidacion')->get('liquidacion/calcular/bruto', 'Liquidacion\LiquidacionController@calcularBruto');  
 Route::name('liquidacion')->get('liquidacion/orden/by/estado/matricula', 'Liquidacion\LiquidacionController@getLiquidacionByMatriculaAndEstado');  
 Route::name('liquidacion')->get('liquidacion/orden/by/dates/estado', 'Liquidacion\LiquidacionController@getLiquidacionOrdenBetweenDates');
 Route::name('liquidacion')->post('liquidacion/orden',  'Liquidacion\LiquidacionController@setOrden');  
 Route::name('liquidacion')->put('liquidacion/orden/{id}',  'Liquidacion\LiquidacionController@putOrden'); 
-Route::name('liquidacion')->post('liquidacion/orden/auditar',  'Liquidacion\LiquidacionController@auditarOrdenes');  
+Route::name('liquidacion')->post('liquidacion/orden/auditar',  'Liquidacion\LiquidacionController@auditarOrdenes');   
+Route::name('liquidacion')->get('liquidacion/generada', 'Liquidacion\LiquidacionController@getLiquidaciones');
+Route::name('liquidacion')->get('liquidacion/detalle/by/id/liquidacion', 'Liquidacion\LiquidacionController@getLiquidacionDetalleByidLiquidacion');
+
+Route::name('expediente')->get('liquidacion/expediente/estado',  'Liquidacion\LiquidacionController@getExpedienteByEstado'); 
+Route::name('expediente')->get('liquidacion/expediente/liquidacion/id',  'Liquidacion\LiquidacionController@getExpedienteByIdLiquidacion'); 
+
+Route::name('expediente')->post('liquidacion/expediente/liquidacion/generar',  'Liquidacion\LiquidacionController@generarLiquidacion');  
+
 });
 
 
