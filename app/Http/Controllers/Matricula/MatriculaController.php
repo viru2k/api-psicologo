@@ -14,7 +14,9 @@ class MatriculaController extends ApiController
     
   public function getMatriculas()
   {      
-    $res = DB::select( DB::raw("SELECT id, mat_matricula_psicologo_nacional, mat_matricula_psicologo, mat_apellido, mat_nombre, mat_sexo, mat_localidad, mat_domicilio_particular, mat_domicilio_laboral, mat_tel_particular, mat_tel_laboral, mat_lugar_laboral, mat_email, mat_tipo_dni, mat_dni, mat_num_cuenta, mat_fecha_nacimiento, mat_fecha_egreso, mat_fecha_matricula, mat_estado_matricula, mat_especialidad, mat_orientacion, mat_abordaje, mat_excento, mat_cuit, mat_ning_bto, mat_banco, mat_cbu, mat_nro_folio, mat_nro_acta, mat_fallecido, mat_historial, mat_numero_superintendecia, 
+    $res = DB::select( DB::raw("SELECT id, mat_matricula_psicologo_nacional, mat_matricula_psicologo, mat_apellido, mat_nombre, mat_sexo, mat_localidad, mat_domicilio_particular,
+     mat_domicilio_laboral, mat_tel_particular, mat_tel_laboral, mat_lugar_laboral, mat_email, mat_tipo_dni, mat_dni, mat_num_cuenta, mat_banco_nombre, mat_sucursal, mat_fecha_nacimiento, mat_fecha_egreso, mat_fecha_matricula,
+     mat_estado_matricula, mat_especialidad, mat_orientacion, mat_abordaje, mat_excento, mat_cuit, mat_ning_bto, mat_banco, mat_cbu, mat_nro_folio, mat_nro_acta, mat_fallecido, mat_historial, mat_numero_superintendecia, 
     mat_n_superintendencia_fecha_vencimiento FROM mat_matricula WHERE 1
     "));
         return response()->json($res, "200");
@@ -24,10 +26,9 @@ class MatriculaController extends ApiController
   public function getMatricula(Request $request)
   {      
     $matricula_id =  $request->input('matricula_id');  
-    $res = DB::select( DB::raw("SELECT id, mat_matricula_psicologo_nacional, mat_matricula_psicologo, mat_apellido, mat_nombre, mat_sexo, mat_localidad, mat_domicilio_particular, mat_domicilio_laboral, mat_tel_particular, mat_tel_laboral, 
-    mat_lugar_laboral, mat_email, mat_tipo_dni, mat_dni, mat_num_cuenta, mat_fecha_nacimiento, mat_fecha_egreso, mat_fecha_matricula, mat_estado_matricula, 
-    mat_especialidad, mat_orientacion, mat_abordaje, mat_excento, mat_cuit, mat_ning_bto, mat_banco, mat_cbu, mat_nro_folio, mat_nro_acta, mat_fallecido, mat_historial, 
-    mat_numero_superintendecia, mat_n_superintendencia_fecha_vencimiento
+    $res = DB::select( DB::raw("SELECT id, mat_matricula_psicologo_nacional, mat_matricula_psicologo, mat_apellido, mat_nombre, mat_sexo, mat_localidad, mat_domicilio_particular, 
+    mat_domicilio_laboral, mat_tel_particular, mat_tel_laboral, mat_lugar_laboral, mat_email, mat_tipo_dni, mat_dni, mat_num_cuenta, mat_banco_nombre, mat_sucursal,  mat_fecha_nacimiento, mat_fecha_egreso, mat_fecha_matricula, 
+    mat_estado_matricula, mat_especialidad, mat_orientacion, mat_abordaje, mat_excento, mat_cuit, mat_ning_bto, mat_banco, mat_cbu, mat_nro_folio, mat_nro_acta, mat_fallecido, mat_historial, mat_numero_superintendecia, mat_n_superintendencia_fecha_vencimiento
     FROM mat_matricula WHERE  mat_matricula.mat_matricula_psicologo = :matricula_id
     "),
      array(                       
@@ -80,8 +81,10 @@ class MatriculaController extends ApiController
       'mat_tel_laboral' => $request->mat_tel_laboral,    
       'mat_lugar_laboral' => $request->mat_lugar_laboral,    
       'mat_email' => $request->mat_email,    
-      'mat_tipo_dni' => $request->mat_tipo_dni,    
+      'mat_tipo_dni' => $request->mat_tipo_dni,     
       'mat_dni' => $request->mat_dni,    
+      'mat_banco_nombre' => $request->mat_banco_nombre,
+      'mat_sucursal' => $request->mat_sucursal,
       'mat_num_cuenta' => $request->mat_num_cuenta,    
       'mat_fecha_nacimiento' => $mat_fecha_nacimiento,    
       'mat_fecha_egreso' => $mat_fecha_egreso,    
@@ -134,7 +137,9 @@ class MatriculaController extends ApiController
       'mat_lugar_laboral' => $request->input('mat_lugar_laboral'),
       'mat_email' => $request->input('mat_email'),
       'mat_tipo_dni' => $request->input('mat_tipo_dni'),
-      'mat_dni' => $request->input('mat_dni'),
+      'mat_dni' => $request->input('mat_dni'),   
+      'mat_banco_nombre' => $request->input('mat_banco_nombre'),  
+      'mat_sucursal' => $request->input('mat_sucursal'),      
       'mat_num_cuenta' => $request->input('mat_num_cuenta'),
       'mat_fecha_nacimiento' => $mat_fecha_nacimiento,
       'mat_fecha_egreso' => $mat_fecha_egreso,
