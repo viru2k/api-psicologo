@@ -275,11 +275,11 @@ private function limpiarDatos() {
    // echo $mat_matricula;
     $res = DB::select( DB::raw("(SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 1 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento AND  year(`mat_fecha_vencimiento`) <= year(curdate()) AND month(`mat_fecha_vencimiento`) <= month(curdate())   ORDER BY mat_pago_historico.mat_fecha_vencimiento DESC LIMIT 1)
     UNION
-    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 1 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento AND  year(`mat_fecha_vencimiento`) <= year(curdate()) AND month(`mat_fecha_vencimiento`) <= month(curdate())  ORDER BY mat_pago_historico.mat_fecha_vencimiento ASC LIMIT 2)
+    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 1 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento AND  year(`mat_fecha_vencimiento`) <= year(curdate()) AND month(`mat_fecha_vencimiento`) <= month(curdate())  ORDER BY mat_pago_historico.mat_fecha_vencimiento ASC LIMIT 1)
     UNION
     (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 2 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento AND  year(`mat_fecha_vencimiento`) <= year(curdate()) AND month(`mat_fecha_vencimiento`) <= month(curdate())  ORDER BY mat_pago_historico.mat_fecha_vencimiento DESC LIMIT 1)
     UNION
-    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 2 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento AND  year(`mat_fecha_vencimiento`) <= year(curdate()) AND month(`mat_fecha_vencimiento`) <= month(curdate())   ORDER BY mat_pago_historico.mat_fecha_vencimiento ASC LIMIT 2)
+    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 2 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento AND  year(`mat_fecha_vencimiento`) <= year(curdate()) AND month(`mat_fecha_vencimiento`) <= month(curdate())   ORDER BY mat_pago_historico.mat_fecha_vencimiento ASC LIMIT 1)
     UNION
     (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto != 2 AND mat_pago_historico.id_concepto != 1 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula =".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND mat_pago_historico.mat_fecha_vencimiento AND  year(`mat_fecha_vencimiento`) <= year(curdate()) AND month(`mat_fecha_vencimiento`) <= month(curdate())   ORDER BY mat_pago_historico.mat_fecha_vencimiento DESC LIMIT 1)
     "));
@@ -546,7 +546,7 @@ public function getOrdenByMatriculaAndLiquidacion(Request $request)
     $mat_matricula = $request->input('mat_matricula');
     $estado = $request->input('estado');
 
-    $res = DB::select( DB::raw("SELECT id_os_liq_orden, mat_matricula,CONCAT(mat_matricula.mat_apellido, ' ',mat_matricula.mat_nombre ) AS mat_apellido_nombre, os_liq_orden.id_sesion,
+    $res = DB::select( DB::raw("SELECT os_obra_social.id as id_obra_social, id_os_liq_orden, mat_matricula,CONCAT(mat_matricula.mat_apellido, ' ',mat_matricula.mat_nombre ) AS mat_apellido_nombre, os_liq_orden.id_sesion,
    os_fecha, os_cantidad, os_precio_sesion, os_precio_total, os_estado_liquidacion, os_liq_numero, os_sesion_tipo.os_sesion, os_sesion_tipo.os_sesion_codigo, pac_paciente.id_paciente,
    pac_paciente.pac_nombre, pac_paciente.pac_dni, pac_paciente.pac_dni,  os_obra_social.os_nombre
    FROM os_liq_orden, mat_matricula, os_obra_social, os_sesion, os_sesion_tipo, pac_paciente
@@ -571,7 +571,7 @@ public function getOrdenByMatriculaAndLiquidacion(Request $request)
     $estado = $request->input('estado');
     //echo $fecha_desde;
 
-    $res = DB::select( DB::raw("SELECT id_os_liq_orden, mat_matricula,CONCAT(mat_matricula.mat_apellido, ' ',mat_matricula.mat_nombre ) AS mat_apellido_nombre, os_liq_orden.id_sesion,
+    $res = DB::select( DB::raw("SELECT os_obra_social.id as id_obra_social, id_os_liq_orden, mat_matricula,CONCAT(mat_matricula.mat_apellido, ' ',mat_matricula.mat_nombre ) AS mat_apellido_nombre, os_liq_orden.id_sesion,
    os_fecha, os_cantidad, os_precio_sesion, os_precio_total, os_estado_liquidacion, os_liq_numero, os_sesion_tipo.os_sesion, os_sesion_tipo.os_sesion_codigo, pac_paciente.id_paciente,
    pac_paciente.pac_nombre, pac_paciente.pac_dni, pac_paciente.pac_dni, os_obra_social.os_nombre
    FROM os_liq_orden, mat_matricula, os_obra_social, os_sesion, os_sesion_tipo, pac_paciente
@@ -923,4 +923,15 @@ public function generarLiquidacion(Request $request) {
 
   return response()->json('ok', "200");
 }
+
+
+public function destroyOrdenById($id)
+{
+    DB::table('os_liq_orden')->where('id_os_liq_orden', '=', $id)->delete();
+    return response()->json('eliminado', 201);
+}
+
+
+
+
 }

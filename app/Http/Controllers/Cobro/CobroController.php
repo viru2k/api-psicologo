@@ -31,7 +31,8 @@ class CobroController extends ApiController
 
     */
 
-
+    var $valorMatricula = 0;
+    var $valorfondo = 0;
 /* -------------------------------------------------------------------------- */
 /*                                PLAN DE PLAGO                               */
 /* -------------------------------------------------------------------------- */
@@ -425,5 +426,121 @@ class CobroController extends ApiController
    //   return response()->json($liquidacion_numero, 201);
 
     }
+
+
+public function generarDeudaPsicologos(Request $request) {
+    $anio = $request->input('anio');
+    $psicologos = DB::select( DB::raw("SELECT mat_matricula_psicologo FROM mat_matricula WHERE mat_estado_matricula = 'A' ORDER BY  mat_matricula_psicologo ASC
+    "));
+
+    $this->getConceptoAGenerar();
+
+    if($this->validarDeudaMatricula($anio)) {
+
+    } else {
+
+    }
+       // return response()->json($res, "200");
+  }
+
+
+  public function generarDeudaPsicologo(Request $request) {
+
+    $mat_matricula_psicologo = $request->input('mat_matricula_psicologo');
+    $consulta = $request->input('consulta');
+
+    $res = DB::select( DB::raw("SELECT mat_matricula_psicologo FROM mat_matricula WHERE mat_estado_matricula = 'A' ORDER BY  mat_matricula_psicologo ASC
+    "));
+
+        return response()->json($res, "200");
+  }
+
+
+  // VALIDO SI LA MATRICULA TIENE DEUDA YA GENERADA
+
+  private function validarDeudaMatricula($anio){
+    //echo strtotime(date('Y-01-01'));
+   $fecha_desde  = date('Y-m-d', strtotime(date(''.$anio.'-01-01')));
+   $fecha_hasta =   date('Y-m-d', strtotime(date(''.$anio.'-12-31')));
+    $psicologo = DB::select( DB::raw("SELECT COUNT(*) AS cont  FROM `mat_pago_historico`
+    WHERE `mat_matricula` = 4
+    AND mat_fecha_vencimiento
+    BETWEEN '".$fecha_desde."'  AND '".$fecha_hasta."' ORDER BY `id_pago_historico`  DESC
+    "));
+    if($psicologo[0]->cont === 0) {
+    // devuelvo true ya que no posee deuda
+    return true;
+    } else {
+     // devuelvo false por que ya posee deuda
+     return false;
+    }
+  // echo $psicologo[0]->cont;
+
+  }
+
+
+  private function getConceptoAGenerar() {
+
+
+    $res = DB::select( DB::raw("SELECT mat_monto FROM mat_concepto WHERE id_concepto IN(1,2)
+    "));
+
+    //var_dump($res);
+    $this->valorMatricula = $res[0]->mat_monto;
+    $this->valorfondo = $res[1]->mat_monto;
+    //echo $this->valorMatricula;
+        return $res;
+  }
+
+
+  private function setDeudaRegistrosMatricula($mat_matricula, $anio) {
+
+    for($i = 0; $i<=12; $i++){
+        // INSERTO MATRICULA
+        $fecha_vencimiento  = date('Y-m-d', strtotime(date(''.$anio.'-'.$i.'-10')));
+      $id =    DB::table('mat_pago_historico')->insertGetId([
+        'mat_matricula' => $mat_matricula,
+        'mat_fecha_pago' => '2099-12-31',
+        'mat_fecha_vencimiento' => $mat_fecha_vencimiento,
+        'mat_monto' => $this->valorMatricula,
+        'mat_monto_cobrado' => $this->valorMatricula,
+        'mat_num_cuota' => $i+1,
+        'mat_descripcion' => 'MATRICULA',
+        'mat_id_plan' => 0,
+        'id_concepto' => 1,
+        'mat_numero_comprobante' => 0,
+        'mat_numero_recibo' => 0,
+        'mat_estado_recibo' => 'A',
+        'mat_tipo_pago' => 'C',
+        'mat_estado' => 'A',
+        'id_usuario' => '1'
+    ]);
+
+    // INSERTO FONDO SOLIDARIO
+
+    $id =    DB::table('mat_pago_historico')->insertGetId([
+        'mat_matricula' => $mat_matricula,
+        'mat_fecha_pago' => '2099-12-31',
+        'mat_fecha_vencimiento' => $mat_fecha_vencimiento,
+        'mat_monto' => $this->valorfondo,
+        'mat_monto_cobrado' => $this->valorfondo,
+        'mat_num_cuota' => $i+1,
+        'mat_descripcion' => 'FONDO SOLIDARIO',
+        'mat_id_plan' => 0,
+        'id_concepto' => 2,
+        'mat_numero_comprobante' => 0,
+        'mat_numero_recibo' => 0,
+        'mat_estado_recibo' => 'A',
+        'mat_tipo_pago' => 'C',
+        'mat_estado' => 'A',
+        'id_usuario' => '1'
+    ]);
+
+    $i++;
+   }
+
+
+    return response()->json($id, "200");
+  }
 
 }
