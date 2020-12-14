@@ -4853,7 +4853,7 @@
                     "email": "sebastian@phpunit.de"
                 }
             ],
-            "description": "Diff implementation",
+            "description": "diff implementation",
             "homepage": "https://github.com/sebastianbergmann/diff",
             "keywords": [
                 "diff",

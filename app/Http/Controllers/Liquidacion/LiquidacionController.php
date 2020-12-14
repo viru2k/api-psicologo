@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\ApiController;
 use Illuminate\Support\Facades\DB;
 
+// CONFIGURO EL MAXIMO TIEMPO DE EJECUCION
+ini_set('max_execution_time', '1024');
 
 class LiquidacionController extends ApiController
 {
@@ -268,6 +270,32 @@ private function limpiarDatos() {
      "),array( 'id_liquidacion_generada' => $id_liquidacion_generada));
     return $res;
   }
+
+
+
+  public function obtenerLiquidacionDetalleSeleccionadas(Request $request) {
+
+    $in = "";
+    $i=0;
+    while(isset($request[$i])){
+        $in = $request[$i]["id_liquidacion_generada "];
+        $i++;
+    }
+
+
+    $res = DB::select( DB::raw("SELECT id_liquidacion_detalle, mat_matricula,
+    os_liq_bruto, os_ing_brutos, os_lote_hogar, os_gasto_admin, os_imp_cheque,
+    os_descuentos, os_desc_matricula, os_desc_fondo_sol,
+    os_otros_ing_eg, os_liq_neto, num_comprobante,
+    os_num_ing_bruto, id_liquidacion_generada
+    FROM os_liq_liquidacion_detalle
+    WHERE
+    id_liquidacion_generada IN (".$in.")
+    ORDER BY id_liquidacion_generada ASC
+     "));
+    return $res;
+  }
+
 
 
   private function obtenerDeudaMatricula($mat_matricula) {
@@ -930,6 +958,29 @@ public function destroyOrdenById($id)
     DB::table('os_liq_orden')->where('id_os_liq_orden', '=', $id)->delete();
     return response()->json('eliminado', 201);
 }
+
+
+
+public function asociarNumeroIngresoBruto(Request $request)
+{
+    $os_liq_numero =$request->input('os_liq_numero') ;
+
+   $estado = DB::update( DB::raw("
+   UPDATE os_liq_orden SET os_estado_liquidacion = 'AUD',  os_liq_numero = 0 WHERE os_estado_liquidacion = 'AFE' AND operacion_cobro.fecha_cobro  AND os_liq_numero= ".$os_liq_numero."
+"));
+  DB::table('os_liq_liquidacion')->where('id_os_liquidacion', '=', $os_liq_numero)->delete();
+  return response()->json("registro desafectado", 201);
+}
+
+
+public function getUltimoIngresoBruto(Request $request) {
+
+
+    $res = DB::select( DB::raw("SELECT MAX(`os_num_ing_bruto`) AS os_num_ing_bruto FROM `os_liq_liquidacion_detalle` WHERE 1
+    "));
+
+        return response()->json($res, "200");
+  }
 
 
 

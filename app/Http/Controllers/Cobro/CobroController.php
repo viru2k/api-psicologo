@@ -3,12 +3,18 @@
 namespace App\Http\Controllers\Cobro;
 
 use Illuminate\Http\Request;
+use DateTime;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\ApiController;
 use Illuminate\Support\Facades\DB;
 
+// CONFIGURO EL MAXIMO TIEMPO DE EJECUCION
+ini_set('max_execution_time', '1024');
+
 class CobroController extends ApiController
 {
+
+
 
     /* MIGRACIONES
 
@@ -33,6 +39,8 @@ class CobroController extends ApiController
 
     var $valorMatricula = 0;
     var $valorfondo = 0;
+    var $valorMatriculaNuevo = 0;
+    var $conceptoMatricula = 0;
 /* -------------------------------------------------------------------------- */
 /*                                PLAN DE PLAGO                               */
 /* -------------------------------------------------------------------------- */
@@ -428,44 +436,71 @@ class CobroController extends ApiController
     }
 
 
-public function generarDeudaPsicologos(Request $request) {
-    $anio = $request->input('anio');
-    $psicologos = DB::select( DB::raw("SELECT mat_matricula_psicologo FROM mat_matricula WHERE mat_estado_matricula = 'A' ORDER BY  mat_matricula_psicologo ASC
-    "));
-
-    $this->getConceptoAGenerar();
-
-    if($this->validarDeudaMatricula($anio)) {
-
-    } else {
-
-    }
-       // return response()->json($res, "200");
-  }
 
 
   public function generarDeudaPsicologo(Request $request) {
-
+    $anio = $request->input('anio');
     $mat_matricula_psicologo = $request->input('mat_matricula_psicologo');
     $consulta = $request->input('consulta');
 
-    $res = DB::select( DB::raw("SELECT mat_matricula_psicologo FROM mat_matricula WHERE mat_estado_matricula = 'A' ORDER BY  mat_matricula_psicologo ASC
-    "));
+    $this->getConceptoAGenerar();
 
-        return response()->json($res, "200");
+    if($consulta === 'todos') {
+
+        $psicologo = DB::select( DB::raw("SELECT mat_matricula_psicologo, mat_fecha_egreso
+        FROM mat_matricula
+        WHERE mat_estado_matricula = 'A'
+        ORDER BY  mat_matricula_psicologo ASC
+        "));
+
+        // VERIFICO QUE EL PSICOLOGO NO TENGA DEUDA GENERADA PREVIAMENTE
+
+        for($i = 0; $i< count($psicologo); $i++){
+           // echo $psicologo[$i]->mat_matricula_psicologo;
+           if($this->validarDeudaMatricula($anio,$psicologo[$i]->mat_matricula_psicologo)) {
+            $this->setDeudaRegistrosMatricula($psicologo[$i]->mat_matricula_psicologo, $psicologo[$i]->mat_fecha_egreso, $anio);
+            }
+        }
+
+     }
+
+    if($consulta === 'psicologo'){
+        $psicologo = DB::select( DB::raw("SELECT mat_matricula_psicologo, mat_fecha_egreso
+        FROM mat_matricula
+        WHERE mat_estado_matricula = 'A'
+        AND mat_matricula_psicologo = '".$mat_matricula_psicologo."'
+        ORDER BY  mat_matricula_psicologo ASC
+        "));
+        // VERIFICO QUE EL PSICOLOGO NO TENGA DEUDA GENERADA PREVIAMENTE
+        if($this->validarDeudaMatricula($anio,$psicologo[0]->mat_matricula_psicologo)) {
+            $this->setDeudaRegistrosMatricula($psicologo[0]->mat_matricula_psicologo, $psicologo[0]->mat_fecha_egreso, $anio);
+        }
+    }
+
+    if($consulta === 'fondo') { }
+
+
+//echo $psicologo[0]->mat_matricula_psicologo;
+
+
+
+        return response()->json($psicologo, "200");
   }
 
 
   // VALIDO SI LA MATRICULA TIENE DEUDA YA GENERADA
 
-  private function validarDeudaMatricula($anio){
+  private function validarDeudaMatricula($anio, $mat_matricula){
     //echo strtotime(date('Y-01-01'));
    $fecha_desde  = date('Y-m-d', strtotime(date(''.$anio.'-01-01')));
    $fecha_hasta =   date('Y-m-d', strtotime(date(''.$anio.'-12-31')));
     $psicologo = DB::select( DB::raw("SELECT COUNT(*) AS cont  FROM `mat_pago_historico`
-    WHERE `mat_matricula` = 4
+    WHERE `mat_matricula` = '".$mat_matricula."'
     AND mat_fecha_vencimiento
-    BETWEEN '".$fecha_desde."'  AND '".$fecha_hasta."' ORDER BY `id_pago_historico`  DESC
+    AND id_concepto IN(1,2,10)
+    AND mat_fecha_vencimiento
+    BETWEEN '".$fecha_desde."'  AND '".$fecha_hasta."'
+    ORDER BY `id_pago_historico`  DESC
     "));
     if($psicologo[0]->cont === 0) {
     // devuelvo true ya que no posee deuda
@@ -482,28 +517,73 @@ public function generarDeudaPsicologos(Request $request) {
   private function getConceptoAGenerar() {
 
 
-    $res = DB::select( DB::raw("SELECT mat_monto FROM mat_concepto WHERE id_concepto IN(1,2)
+    $res = DB::select( DB::raw("SELECT mat_monto FROM mat_concepto WHERE id_concepto IN(1,2,10)
     "));
 
     //var_dump($res);
     $this->valorMatricula = $res[0]->mat_monto;
     $this->valorfondo = $res[1]->mat_monto;
-    //echo $this->valorMatricula;
-        return $res;
+    $this->valorMatriculaNuevo = $res[2]->mat_monto;
+
+
   }
 
 
-  private function setDeudaRegistrosMatricula($mat_matricula, $anio) {
+  private function setDeudaRegistrosMatricula($mat_matricula, $fechaMatricula, $anio) {
 
-    for($i = 0; $i<=12; $i++){
-        // INSERTO MATRICULA
-        $fecha_vencimiento  = date('Y-m-d', strtotime(date(''.$anio.'-'.$i.'-10')));
+    $conceptoTotal = '';
+    $_valorMatricula = 0;
+
+    for($i = 0; $i<12; $i++){
+        $fecha_vencimiento  = date('Y-m-d', strtotime(date(''.$anio.'-'.($i+1).'-10')));
+
+      $conceptoTotal =  $this->esAnioGracia($fecha_vencimiento, $fechaMatricula);
+
+      if($conceptoTotal === 'bonificada') {
+          $_valorMatricula = $this->valorMatriculaNuevo;
+          $this->conceptoMatricula = 10;
+
+
+        // FONDO SOLIDARIO LO PAGAN TODOS???
+   // INSERTO MATRICULA
+
+      $fecha_vencimiento  = date('Y-m-d', strtotime(date(''.$anio.'-'.($i+1).'-10')));
       $id =    DB::table('mat_pago_historico')->insertGetId([
         'mat_matricula' => $mat_matricula,
         'mat_fecha_pago' => '2099-12-31',
-        'mat_fecha_vencimiento' => $mat_fecha_vencimiento,
-        'mat_monto' => $this->valorMatricula,
-        'mat_monto_cobrado' => $this->valorMatricula,
+        'mat_fecha_vencimiento' => $fecha_vencimiento,
+        'mat_monto' => $_valorMatricula,
+        'mat_monto_cobrado' => $_valorMatricula,
+        'mat_num_cuota' => $i+1,
+        'mat_descripcion' => 'MATRICULA BONIFICADA',
+        'mat_id_plan' => 0,
+        'id_concepto' => 10,
+        'mat_numero_comprobante' => 0,
+        'mat_numero_recibo' => 0,
+        'mat_estado_recibo' => 'A',
+        'mat_tipo_pago' => 'C',
+        'mat_estado' => 'A',
+        'id_usuario' => '1'
+    ]);
+
+      }
+
+      if($conceptoTotal === 'regular') {
+
+        $_valorMatricula = $this->valorMatricula;
+        $this->conceptoMatricula = 1;
+
+
+        // FONDO SOLIDARIO LO PAGAN TODOS???
+   // INSERTO MATRICULA
+
+      $fecha_vencimiento  = date('Y-m-d', strtotime(date(''.$anio.'-'.($i+1).'-10')));
+      $id =    DB::table('mat_pago_historico')->insertGetId([
+        'mat_matricula' => $mat_matricula,
+        'mat_fecha_pago' => '2099-12-31',
+        'mat_fecha_vencimiento' => $fecha_vencimiento,
+        'mat_monto' => $_valorMatricula,
+        'mat_monto_cobrado' => $_valorMatricula,
         'mat_num_cuota' => $i+1,
         'mat_descripcion' => 'MATRICULA',
         'mat_id_plan' => 0,
@@ -516,12 +596,21 @@ public function generarDeudaPsicologos(Request $request) {
         'id_usuario' => '1'
     ]);
 
+      }
+
+      if($conceptoTotal === 'excenta') {
+
+
+
+      }
+
+
     // INSERTO FONDO SOLIDARIO
 
     $id =    DB::table('mat_pago_historico')->insertGetId([
         'mat_matricula' => $mat_matricula,
         'mat_fecha_pago' => '2099-12-31',
-        'mat_fecha_vencimiento' => $mat_fecha_vencimiento,
+        'mat_fecha_vencimiento' => $fecha_vencimiento,
         'mat_monto' => $this->valorfondo,
         'mat_monto_cobrado' => $this->valorfondo,
         'mat_num_cuota' => $i+1,
@@ -535,12 +624,39 @@ public function generarDeudaPsicologos(Request $request) {
         'mat_estado' => 'A',
         'id_usuario' => '1'
     ]);
-
-    $i++;
    }
 
 
-    return response()->json($id, "200");
+ //   return response()->json($id, "200");
+  }
+
+  private function esAnioGracia($mesAvalidar, $fechMatricula) {
+    echo date($mesAvalidar).' - ';
+    echo date($fechMatricula).'  ';
+
+
+    $first_date = date($mesAvalidar);
+    $second_date = date($fechMatricula);
+    $d1 = new DateTime($mesAvalidar); // FECHA ACTUAL
+    $d2 = new DateTime($fechMatricula); // FECHA MATRICULA
+    $difference = $d2->diff($d1);
+    echo ' diferencia ->'. $difference->days. ' ';
+   // var_dump($difference);
+  //  echo ' diferencia ->'. $difference->m. ' ';
+// FALTA DEFINIR QUE SEA MAYOR A DOS AÑOS, SOLO  ESTA TOMANDO EL AÑO DE GRACIA Y EL AÑO PRIMERO
+
+    if(($difference->days <= 1095)&&($difference->days > 365)){
+        echo ' matricula bonificada |';
+        return 'bonificada';
+    }
+
+    if($difference->days > 1095){
+        echo ' matricula regular |';
+        return 'regular';
+    }
+
+    return 'excenta';
+
   }
 
 }

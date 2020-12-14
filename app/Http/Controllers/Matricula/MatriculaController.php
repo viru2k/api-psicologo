@@ -16,8 +16,9 @@ class MatriculaController extends ApiController
   {
     $res = DB::select( DB::raw("SELECT id, mat_matricula_psicologo_nacional, mat_matricula_psicologo, mat_apellido, mat_nombre, mat_sexo, mat_localidad, mat_domicilio_particular,
      mat_domicilio_laboral, mat_tel_particular, mat_tel_laboral, mat_lugar_laboral, mat_email, mat_tipo_dni, mat_dni, mat_num_cuenta, mat_banco_nombre, mat_sucursal, mat_fecha_nacimiento, mat_fecha_egreso, mat_fecha_matricula,
-     mat_estado_matricula, mat_especialidad, mat_orientacion, mat_abordaje, mat_excento, mat_cuit, mat_ning_bto, mat_banco, mat_cbu, mat_nro_folio, mat_nro_acta, mat_fallecido, mat_historial, mat_numero_superintendecia,
-    mat_n_superintendencia_fecha_vencimiento FROM mat_matricula WHERE 1
+     mat_estado_matricula, mat_especialidad, mat_orientacion, mat_abordaje, mat_excento, mat_cuit, mat_ning_bto, mat_banco, mat_cbu, mat_nro_folio,
+     mat_nro_acta, mat_fallecido, mat_historial, mat_numero_superintendecia,
+    mat_n_superintendencia_fecha_vencimiento, nro_afiliado FROM mat_matricula WHERE 1
     "));
         return response()->json($res, "200");
   }
@@ -28,7 +29,8 @@ class MatriculaController extends ApiController
     $matricula_id =  $request->input('matricula_id');
     $res = DB::select( DB::raw("SELECT id, mat_matricula_psicologo_nacional, mat_matricula_psicologo, mat_apellido, mat_nombre, mat_sexo, mat_localidad, mat_domicilio_particular,
     mat_domicilio_laboral, mat_tel_particular, mat_tel_laboral, mat_lugar_laboral, mat_email, mat_tipo_dni, mat_dni, mat_num_cuenta, mat_banco_nombre, mat_sucursal,  mat_fecha_nacimiento, mat_fecha_egreso, mat_fecha_matricula,
-    mat_estado_matricula, mat_especialidad, mat_orientacion, mat_abordaje, mat_excento, mat_cuit, mat_ning_bto, mat_banco, mat_cbu, mat_nro_folio, mat_nro_acta, mat_fallecido, mat_historial, mat_numero_superintendecia, mat_n_superintendencia_fecha_vencimiento
+    mat_estado_matricula, mat_especialidad, mat_orientacion, mat_abordaje, mat_excento, mat_cuit, mat_ning_bto, mat_banco, mat_cbu, mat_nro_folio,
+    mat_nro_acta, mat_fallecido, mat_historial, mat_numero_superintendecia, mat_n_superintendencia_fecha_vencimiento, nro_afiliado
     FROM mat_matricula WHERE  mat_matricula.mat_matricula_psicologo = :matricula_id
     "),
      array(
@@ -42,7 +44,9 @@ class MatriculaController extends ApiController
   {
     $matricula_id =  $request->input('matricula_id');
 
-    $res = DB::select( DB::raw("SELECT mat_matricula.id, mat_matricula_psicologo_nacional, mat_matricula_psicologo, mat_apellido, mat_nombre, mat_sexo,mat_matricula.mat_tipo_dni,  mat_matricula.mat_dni, mat_matricula_obra_social.id as mat_matricula_obra_social_id, mat_matricula_obra_social.obra_social_id,  obra_social.nombre  as obra_social_nombre
+    $res = DB::select( DB::raw("SELECT mat_matricula.id, mat_matricula_psicologo_nacional, mat_matricula_psicologo, mat_apellido,
+    mat_nombre, mat_sexo,mat_matricula.mat_tipo_dni,  mat_matricula.mat_dni, mat_matricula_obra_social.id as mat_matricula_obra_social_id,
+    mat_matricula_obra_social.obra_social_id,  obra_social.nombre  as obra_social_nombre, nro_afiliado
     FROM mat_matricula, mat_matricula_obra_social, obra_social
     WHERE mat_matricula.id = mat_matricula_obra_social.matricula_id AND obra_social.id = mat_matricula_obra_social.obra_social_id AND mat_matricula.mat_matricula_psicologo = :matricula_id
     "),
@@ -103,7 +107,8 @@ class MatriculaController extends ApiController
       'mat_fallecido' => $request->mat_fallecido,
       'mat_historial' => $request->mat_historial,
       'mat_numero_superintendecia' => $request->mat_numero_superintendecia,
-      'mat_n_superintendencia_fecha_vencimiento' => $mat_n_superintendencia_fecha_vencimiento
+      'mat_n_superintendencia_fecha_vencimiento' => $mat_n_superintendencia_fecha_vencimiento,
+      'nro_afiliado' => $nro_afiliado
   ]);
     return response()->json($id, "200");
   }
@@ -158,7 +163,8 @@ class MatriculaController extends ApiController
       'mat_fallecido' => $request->input('mat_fallecido'),
       'mat_historial' => $request->input('mat_historial'),
       'mat_numero_superintendecia' => $request->input('mat_numero_superintendecia'),
-      'mat_n_superintendencia_fecha_vencimiento' => $mat_n_superintendencia_fecha_vencimiento
+      'mat_n_superintendencia_fecha_vencimiento' => $mat_n_superintendencia_fecha_vencimiento,
+      'nro_afiliado' => $request->input('nro_afiliado')
       ]);
 
       return response()->json($res, "200");

@@ -127,8 +127,14 @@ Route::name('liquidacion')->get('liquidacion/detalle/by/id/liquidacion', 'Liquid
 
 Route::name('expediente')->get('liquidacion/expediente/estado',  'Liquidacion\LiquidacionController@getExpedienteByEstado');
 Route::name('expediente')->get('liquidacion/expediente/liquidacion/id',  'Liquidacion\LiquidacionController@getExpedienteByIdLiquidacion');
-
 Route::name('expediente')->post('liquidacion/expediente/liquidacion/generar',  'Liquidacion\LiquidacionController@generarLiquidacion');
+Route::name('expediente')->post('liquidacion/expediente/liquidacion/id/seleccionado',  'Liquidacion\LiquidacionController@obtenerLiquidacionDetalleSeleccionadas');
+
+Route::name('ingresobruto')->get('liquidacion/ingreso/bruto/ultimo',  'Liquidacion\LiquidacionController@getUltimoIngresoBruto');
+
+
+
+
 
 
 
