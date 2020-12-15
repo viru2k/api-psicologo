@@ -124,8 +124,8 @@ class CobroController extends ApiController
       $id =    DB::table('mat_concepto')->insertGetId([
 
         'mat_concepto' => $request->mat_concepto,
-        'mat_monto' => $mat_monto,
-        'mat_interes' => $mat_interes,
+        'mat_monto' => $request->mat_monto,
+        'mat_interes' => $request->mat_interes,
         'mat_descripcion' => $request->mat_descripcion
     ]);
       return response()->json($id, "200");
@@ -307,13 +307,17 @@ class CobroController extends ApiController
       $mat_fecha_vencimiento =  date('Y-m-d', strtotime($tmp_fecha));
   //    echo '-'. $request->input('mat_monto'). '-';
   echo $id;
+  echo $request->input('mat_monto_final');
       $res =  DB::table('mat_pago_historico')
       ->where('id_pago_historico', $id)
       ->update([
+
+        'id_concepto' => $request->input('id_concepto'),
         'mat_fecha_pago' => $mat_fecha_pago,
         'mat_fecha_vencimiento' => $mat_fecha_vencimiento,
         'mat_monto' => $request->input('mat_monto'),
-        'mat_monto_cobrado' => $request->input('mat_monto'),
+        'mat_tipo_pago' => $request->input('mat_interes'),
+        'mat_monto_cobrado' => $request->input('mat_monto_final'),
         'mat_num_cuota' => $request->input('mat_num_cuota'),
         'mat_descripcion' => $request->input('mat_descripcion'),
         'mat_id_plan' => $request->input('mat_id_plan'),
@@ -439,14 +443,19 @@ class CobroController extends ApiController
 
 
   public function generarDeudaPsicologo(Request $request) {
-    $anio = $request->input('anio');
+
+    $_anio =  date('Y/n/d', strtotime( $request->input('anio')));
+
     $mat_matricula_psicologo = $request->input('mat_matricula_psicologo');
     $consulta = $request->input('consulta');
-
+    //echo  date('Y-m-d', strtotime(date(''.$anio.'-01-01')));
+    $anio =  date('Y', strtotime(date($_anio)));
+    //echo $anio;
     $this->getConceptoAGenerar();
 
     if($consulta === 'todos') {
 
+        $periodoInicial = 0;
         $psicologo = DB::select( DB::raw("SELECT mat_matricula_psicologo, mat_fecha_egreso
         FROM mat_matricula
         WHERE mat_estado_matricula = 'A'
@@ -458,13 +467,14 @@ class CobroController extends ApiController
         for($i = 0; $i< count($psicologo); $i++){
            // echo $psicologo[$i]->mat_matricula_psicologo;
            if($this->validarDeudaMatricula($anio,$psicologo[$i]->mat_matricula_psicologo)) {
-            $this->setDeudaRegistrosMatricula($psicologo[$i]->mat_matricula_psicologo, $psicologo[$i]->mat_fecha_egreso, $anio);
+            $this->setDeudaRegistrosMatricula($psicologo[$i]->mat_matricula_psicologo, $psicologo[$i]->mat_fecha_egreso, $anio, $periodoInicial);
             }
         }
 
      }
 
     if($consulta === 'psicologo'){
+        $periodoInicial = 0;
         $psicologo = DB::select( DB::raw("SELECT mat_matricula_psicologo, mat_fecha_egreso
         FROM mat_matricula
         WHERE mat_estado_matricula = 'A'
@@ -473,7 +483,23 @@ class CobroController extends ApiController
         "));
         // VERIFICO QUE EL PSICOLOGO NO TENGA DEUDA GENERADA PREVIAMENTE
         if($this->validarDeudaMatricula($anio,$psicologo[0]->mat_matricula_psicologo)) {
-            $this->setDeudaRegistrosMatricula($psicologo[0]->mat_matricula_psicologo, $psicologo[0]->mat_fecha_egreso, $anio);
+            $this->setDeudaRegistrosMatricula($psicologo[0]->mat_matricula_psicologo, $psicologo[0]->mat_fecha_egreso, $anio, $periodoInicial);
+        }
+    }
+
+
+    if($consulta === 'psicologofecha'){
+        $periodoInicial =  date('n', strtotime(date($_anio)));
+       // echo $periodoInicial;
+        $psicologo = DB::select( DB::raw("SELECT mat_matricula_psicologo, mat_fecha_egreso
+        FROM mat_matricula
+        WHERE mat_estado_matricula = 'A'
+        AND mat_matricula_psicologo = '".$mat_matricula_psicologo."'
+        ORDER BY  mat_matricula_psicologo ASC
+        "));
+        // VERIFICO QUE EL PSICOLOGO NO TENGA DEUDA GENERADA PREVIAMENTE
+        if($this->validarDeudaMatricula($anio,$psicologo[0]->mat_matricula_psicologo)) {
+            $this->setDeudaRegistrosMatricula($psicologo[0]->mat_matricula_psicologo, $psicologo[0]->mat_fecha_egreso, $anio, $periodoInicial-1);
         }
     }
 
@@ -529,12 +555,12 @@ class CobroController extends ApiController
   }
 
 
-  private function setDeudaRegistrosMatricula($mat_matricula, $fechaMatricula, $anio) {
+  private function setDeudaRegistrosMatricula($mat_matricula, $fechaMatricula, $anio, $periodoInicial) {
 
     $conceptoTotal = '';
     $_valorMatricula = 0;
 
-    for($i = 0; $i<12; $i++){
+    for($i = $periodoInicial; $i<12; $i++){
         $fecha_vencimiento  = date('Y-m-d', strtotime(date(''.$anio.'-'.($i+1).'-10')));
 
       $conceptoTotal =  $this->esAnioGracia($fecha_vencimiento, $fechaMatricula);

@@ -46,9 +46,9 @@ class MatriculaController extends ApiController
 
     $res = DB::select( DB::raw("SELECT mat_matricula.id, mat_matricula_psicologo_nacional, mat_matricula_psicologo, mat_apellido,
     mat_nombre, mat_sexo,mat_matricula.mat_tipo_dni,  mat_matricula.mat_dni, mat_matricula_obra_social.id as mat_matricula_obra_social_id,
-    mat_matricula_obra_social.obra_social_id,  obra_social.nombre  as obra_social_nombre, nro_afiliado
-    FROM mat_matricula, mat_matricula_obra_social, obra_social
-    WHERE mat_matricula.id = mat_matricula_obra_social.matricula_id AND obra_social.id = mat_matricula_obra_social.obra_social_id AND mat_matricula.mat_matricula_psicologo = :matricula_id
+    mat_matricula_obra_social.obra_social_id,  os_obra_social.os_nombre  as obra_social_nombre, nro_afiliado
+    FROM mat_matricula, mat_matricula_obra_social, os_obra_social
+    WHERE mat_matricula.id = mat_matricula_obra_social.matricula_id AND os_obra_social.id = mat_matricula_obra_social.obra_social_id AND mat_matricula.id = :matricula_id
     "),
      array(
       'matricula_id' => $matricula_id
