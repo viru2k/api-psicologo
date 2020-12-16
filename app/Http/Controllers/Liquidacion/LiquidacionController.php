@@ -122,7 +122,7 @@ public function liquidar(Request $request)
   $this->liquidacionDetalle = $this->obtenerLiquidacionDetalle($id_liquidacion_generada); // DEBE VENIR DEL REQUEST
   $this->concepto = $this->obtenerConcepto();
   $this->percepcion = $this->obtenerPercepcion();
-
+    echo $id_liquidacion_generada;
   $_registros = count($this->liquidacionDetalle);
 
    //
@@ -133,33 +133,35 @@ public function liquidar(Request $request)
 
     foreach ($this->liquidacionDetalle as $index => $_liquidacionDetalle) {
 
-      $avance_liquidacion = ($index * 100) /$_registros;
+        if(($_liquidacionDetalle->os_liq_neto == 0)){
+                $avance_liquidacion = ($index * 100) /$_registros;
+                echo 'matricula '. $_liquidacionDetalle->mat_matricula.'   '.$_liquidacionDetalle->os_liq_neto;
+            /* ---------- GUARDO EL BRUTO PARA PODER IR REALIZANDO DEDUCCIONES ---------- */
+                $this->saldo = $_liquidacionDetalle->os_liq_bruto;
 
-/* ---------- GUARDO EL BRUTO PARA PODER IR REALIZANDO DEDUCCIONES ---------- */
-    $this->saldo = $_liquidacionDetalle->os_liq_bruto;
+            /* ---------------- CALCULO LAS RETENCIONES DE CADA MATRICULA --------------- */
+                //echo $_liquidacionDetalle->mat_matricula;
+                if($_liquidacionDetalle->mat_matricula) {
 
-/* ---------------- CALCULO LAS RETENCIONES DE CADA MATRICULA --------------- */
-    //echo $_liquidacionDetalle->mat_matricula;
-      if($_liquidacionDetalle->mat_matricula) {
+                    // CALCULO LOS CONCEPTOS
+                $this->TOTAL_PERCEPCIONES =   $this->calcularPercepciones($_liquidacionDetalle);
 
-        // CALCULO LOS CONCEPTOS
-      $this->TOTAL_PERCEPCIONES =   $this->calcularPercepciones($_liquidacionDetalle);
+                $this->saldo = $this->saldo - $this->TOTAL_PERCEPCIONES;
+                    // OBTENGO LA DEUDA Y PRUEBO DESCONTAR
+                    $this->deuda = $this->obtenerDeudaMatricula($_liquidacionDetalle->mat_matricula);
 
-      $this->saldo = $this->saldo - $this->TOTAL_PERCEPCIONES;
-        // OBTENGO LA DEUDA Y PRUEBO DESCONTAR
-        $this->deuda = $this->obtenerDeudaMatricula($_liquidacionDetalle->mat_matricula);
+                    $this->pago_historico_ids = $this->calcularDeudaMatricula();
 
-        $this->pago_historico_ids = $this->calcularDeudaMatricula();
+                    if($this->pago_historico_ids !== ''){ // SI NO VIENE VACIO ACTUALIZO LOS VALORES DE MATRICULA
+                    $this->actualizarDeudaLiquidacion($this->pago_historico_ids, $_liquidacionDetalle->id_liquidacion_detalle, $_liquidacionDetalle->mat_matricula );
 
-        if($this->pago_historico_ids !== ''){ // SI NO VIENE VACIO ACTUALIZO LOS VALORES DE MATRICULA
-          $this->actualizarDeudaLiquidacion($this->pago_historico_ids, $_liquidacionDetalle->id_liquidacion_detalle, $_liquidacionDetalle->mat_matricula );
-
-        }
+                    }
+                }
+                // ACTUALIZO TODAS LAS DEDUCCIONES
+                $this->actualizarLiquidacionDetalleConceptos($_liquidacionDetalle->id_liquidacion_detalle);
+                // LIMPIAR DATOS DEL PSICOLOGO
+                $this->limpiarDatos();
       }
-      // ACTUALIZO TODAS LAS DEDUCCIONES
-      $this->actualizarLiquidacionDetalleConceptos($_liquidacionDetalle->id_liquidacion_detalle);
-      // LIMPIAR DATOS DEL PSICOLOGO
-      $this->limpiarDatos();
     }
 
     if($this->INTERESES_pago_historico_id !== ''){ // SI NO VIENE VACIO ACTUALIZO LOS VALORES DE MATRICULA
@@ -806,34 +808,46 @@ return response()->json($res, "200");
 
     public function afectarOrdenes(Request $request)
     {
-        $tmp_fecha = str_replace('/', '-', $request["os_fecha_desde"]);
-        $os_fecha_desde =  date('Y-m-d', strtotime($tmp_fecha));
-        $tmp_fecha = str_replace('/', '-', $request["os_fecha_hasta"]);
-        $os_fecha_hasta =  date('Y-m-d', strtotime($tmp_fecha));
+        $tmp_fecha = str_replace('/', '-',  $request->input('fecha_desde'));
+        $fecha_desde =  date('Y-m-d', strtotime($tmp_fecha));
+        $tmp_fecha = str_replace('/', '-',  $request->input('fecha_hasta'));
+        $fecha_hasta =  date('Y-m-d', strtotime($tmp_fecha));
+
+       $estado = $request->input('estado');
+       $id_os_obra_social = $request->input('id_os_obra_social');
+       $os_liq_numero = $request->input('os_liq_numero');
+       $total_ordenes = $request->input('total_ordenes');
+       $total = $request->input('total');
+     //  echo $estado;
+     //  echo $id_os_obra_social;
+     //  echo $fecha_desde;
+     //  echo $fecha_hasta;
+     //  echo $os_liq_numero;
 
     $id_os_liquidacion= DB::table('os_liq_liquidacion')->insertGetId([
-        'id_os_obra_social' => $request["id_os_obra_social"],
-        'os_liq_numero' => $request["os_liq_numero"],
-        'os_fecha_desde' => $os_fecha_desde,
-        'os_fecha_hasta' => $os_fecha_hasta,
-        'id_liquidacion' => 0,
-        'os_cant_ordenes' => $request["os_cant_ordenes"],
-        'os_monto_total' => $request["os_monto_total"],
-        'os_estado' => $request["os_estado"]
+        'id_os_obra_social' => $id_os_obra_social,
+        'os_liq_numero' => $os_liq_numero,
+        'os_fecha_desde' => $fecha_desde,
+        'os_fecha_hasta' => $fecha_hasta,
+        'os_cant_ordenes' => $total_ordenes,
+        'os_monto_total' => $total,
+        'os_estado' => 'G',
+        'id_liquidacion' => 0
     ]);
 
   $i = 0;
-    while(isset($request->registros[$i])){
+  while(isset($request[$i])){
         $update = DB::table('os_liq_orden')
-        ->where('id_os_liq_orden',$request->registros[$i]["id_os_liq_orden"] ) ->limit(1)
+        ->where('id_os_liq_orden',$request[$i]["id_os_liq_orden"] ) ->limit(1)
         ->update( [
-         'os_liq_numero' =>$os_liq_numero,
+         'os_liq_numero' =>$id_os_liquidacion,
          'os_estado_liquidacion'=>'AFE' ]);
             $i++;
 
         }
+
         //echo  $request->registros[0]["id"];
-      return response()->json($liquidacion_numero, 201);
+      return response()->json($id_os_liquidacion, 201);
 
     }
 

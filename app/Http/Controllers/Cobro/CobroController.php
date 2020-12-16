@@ -166,7 +166,8 @@ class CobroController extends ApiController
 
 
       $res = DB::select( DB::raw("SELECT id_pago_historico, mat_matricula, CONCAT(mat_matricula.mat_apellido, ' ' , mat_matricula.mat_nombre) AS mat_nombreyapellido, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_interes, mat_pago_historico.mat_descripcion,
-      mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto , nombreyapellido
+      mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario ,
+       mat_pago_historico.id_concepto, mat_concepto , nombreyapellido, id_liquidacion_detalle
       FROM `mat_pago_historico`, mat_concepto, mat_matricula  , users
       WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo
       AND mat_concepto.id_concepto = mat_pago_historico.id_concepto
@@ -183,7 +184,8 @@ class CobroController extends ApiController
         $estado = $request->input('estado');
 
       $res = DB::select( DB::raw("SELECT id_pago_historico, mat_matricula, CONCAT(mat_matricula.mat_apellido, ' ' , mat_matricula.mat_nombre) AS mat_nombreyapellido, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_interes, mat_pago_historico.mat_descripcion,
-      mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto , nombreyapellido
+      mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario ,
+      mat_pago_historico.id_concepto, mat_concepto , nombreyapellido, id_liquidacion_detalle
       FROM `mat_pago_historico`, mat_concepto, mat_matricula   , users
       WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo
       AND mat_concepto.id_concepto = mat_pago_historico.id_concepto
@@ -202,7 +204,8 @@ class CobroController extends ApiController
         $mat_matricula = $request->input('mat_matricula');
         $mat_id_plan = $request->input('mat_id_plan');
       $res = DB::select( DB::raw("SELECT id_pago_historico, mat_matricula, CONCAT(mat_matricula.mat_apellido, ' ' , mat_matricula.mat_nombre) AS mat_nombreyapellido, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_interes, mat_pago_historico.mat_descripcion,
-      mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto , nombreyapellido
+      mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario ,
+       mat_pago_historico.id_concepto, mat_concepto , nombreyapellido, id_liquidacion_detalle
       FROM `mat_pago_historico`, mat_concepto, mat_matricula , users
       WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo
       AND mat_concepto.id_concepto = mat_pago_historico.id_concepto
@@ -221,7 +224,8 @@ class CobroController extends ApiController
     {
 
       $res = DB::select( DB::raw("SELECT id_pago_historico, mat_matricula, CONCAT(mat_matricula.mat_apellido, ' ' , mat_matricula.mat_nombre) AS mat_nombreyapellido, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_interes, mat_pago_historico.mat_descripcion,
-      mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto , nombreyapellido
+      mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario ,
+       mat_pago_historico.id_concepto, mat_concepto , nombreyapellido, id_liquidacion_detalle
       FROM `mat_pago_historico`, mat_concepto, mat_matricula  , users
       WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo
       AND users.id = mat_pago_historico.id_usuario
@@ -242,7 +246,8 @@ class CobroController extends ApiController
         $estado = $request->input('estado');
       if ($estado === 'todos') {
         $res = DB::select( DB::raw("SELECT id_pago_historico, mat_matricula, CONCAT(mat_matricula.mat_apellido, ' ' , mat_matricula.mat_nombre) AS mat_nombreyapellido, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_interes, mat_pago_historico.mat_descripcion,
-        mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto, nombreyapellido
+        mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario ,
+         mat_pago_historico.id_concepto, mat_concepto, nombreyapellido, id_liquidacion_detalle
         FROM `mat_pago_historico`, mat_concepto, mat_matricula,users
         WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo
         AND mat_concepto.id_concepto = mat_pago_historico.id_concepto
@@ -257,7 +262,8 @@ class CobroController extends ApiController
       if ($estado === 'A') {
 
         $res = DB::select( DB::raw("SELECT id_pago_historico, mat_matricula, CONCAT(mat_matricula.mat_apellido, ' ' , mat_matricula.mat_nombre) AS mat_nombreyapellido, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_interes, mat_pago_historico.mat_descripcion,
-        mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto , nombreyapellido
+        mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario ,
+        mat_pago_historico.id_concepto, mat_concepto , nombreyapellido, id_liquidacion_detalle
         FROM `mat_pago_historico`, mat_concepto, mat_matricula, users
         WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo
         AND mat_concepto.id_concepto = mat_pago_historico.id_concepto
@@ -275,7 +281,8 @@ class CobroController extends ApiController
       if ($estado === 'P'){
 
         $res = DB::select( DB::raw("SELECT id_pago_historico, mat_matricula, CONCAT(mat_matricula.mat_apellido, ' ' , mat_matricula.mat_nombre) AS mat_nombreyapellido, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_interes, mat_pago_historico.mat_descripcion,
-        mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario , mat_pago_historico.id_concepto, mat_concepto , nombreyapellido
+        mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario ,
+        mat_pago_historico.id_concepto, mat_concepto , nombreyapellido, id_liquidacion_detalle
         FROM `mat_pago_historico`, mat_concepto, mat_matricula, users
         WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo
         AND mat_concepto.id_concepto = mat_pago_historico.id_concepto
