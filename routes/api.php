@@ -55,9 +55,11 @@ Route::name('psicologo')->post('matricula', 'Matricula\MatriculaController@setMa
 Route::name('psicologo')->delete('matricula/{id}', 'Matricula\MatriculaController@borrarMatriculaObraSocial');
 Route::name('psicologo')->post('matricula/obra/social/add/{id}', 'Matricula\MatriculaController@setMatriculaObraSocial');
 
+Route::name('paciente')->get('paciente/todos/limite', 'Matricula\MatriculaController@getPacientes');
 Route::name('paciente')->get('paciente/by/condicion', 'Matricula\MatriculaController@getPacienteByCondicion');
 });
 Route::name('paciente')->post('paciente/nuevo', 'Matricula\MatriculaController@setPaciente');
+Route::name('paciente')->put('paciente/{id}',  'Matricula\MatriculaController@putPaciente');
 
 
 /* -------------------------------------------------------------------------- */
@@ -92,6 +94,8 @@ Route::name('concepto')->put('concepto/{id}',  'Cobro\CobroController@putConcept
 
 Route::name('cobros')->get('cobro/by/matricula', 'Cobro\CobroController@getDeudaByMatricula');
 Route::name('cobros')->get('cobro/by/matricula/estado', 'Cobro\CobroController@getDeudaByMatriculaAndEstado');
+Route::name('cobros')->get('cobro/by/matricula/estado/detalle/liquidacion', 'Cobro\CobroController@getDeudaByMatriculaAndEstadoByIdLiquidacionDetalle');
+
 Route::name('cobros')->get('cobro/by/matricula/plan', 'Cobro\CobroController@getDeudaByPlanAndMatricula');
 Route::name('cobros')->get('cobro/by/matricula/by/dates', 'Cobro\CobroController@getDeudaBydMatriculaBetweenDates');
 Route::name('cobros')->get('cobro/plan', 'Cobro\CobroController@getPlanes');
@@ -103,7 +107,7 @@ Route::name('cobros')->put('cobro/by/matricula/cobrar/{id}',  'Cobro\CobroContro
 Route::name('plan')->get('plan/ultimo', 'Cobro\CobroController@getUltimoPlanPago');
 Route::name('plan')->post('plan/by/matricula', 'Cobro\CobroController@setPlanPagoMatricula');
 
-Route::name('deuda')->get('deuda/psicologo/todos', 'Cobro\CobroController@generarDeudaPsicologos');
+//Route::name('deuda')->get('deuda/psicologo/todos', 'Cobro\CobroController@generarDeudaPsicologos');
 Route::name('deuda')->get('deuda/psicologo', 'Cobro\CobroController@generarDeudaPsicologo');
 
 
@@ -123,24 +127,21 @@ Route::name('liquidacion')->post('liquidacion/orden',  'Liquidacion\LiquidacionC
 Route::name('liquidacion')->put('liquidacion/orden/{id}',  'Liquidacion\LiquidacionController@putOrden');
 Route::name('liquidacion')->post('liquidacion/orden/auditar',  'Liquidacion\LiquidacionController@auditarOrdenes');
 Route::name('liquidacion')->get('liquidacion/generada', 'Liquidacion\LiquidacionController@getLiquidaciones');
-Route::name('liquidacion')->get('liquidacion/detalle/by/id/liquidacion', 'Liquidacion\LiquidacionController@getLiquidacionDetalleByidLiquidacion');
-
-Route::name('expediente')->get('liquidacion/expediente/estado',  'Liquidacion\LiquidacionController@getExpedienteByEstado');
-Route::name('expediente')->get('liquidacion/expediente/liquidacion/id',  'Liquidacion\LiquidacionController@getExpedienteByIdLiquidacion');
-Route::name('expediente')->post('liquidacion/expediente/liquidacion/generar',  'Liquidacion\LiquidacionController@generarLiquidacion');
+Route::name('liquidacion')->get('liquidacion/ultimonumero/ingbrutos', 'Liquidacion\LiquidacionController@getUltimoNroIngBrutos');
+Route::name('liquidacion')->get('liquidacion/ultimonumero/recibo', 'Liquidacion\LiquidacionController@getUltimoNroRecibo');
+Route::name('expediente')->post('liquidacion/actualizar/ingbrutos',  'Liquidacion\LiquidacionController@putActualizarNroIngBrutos');
+Route::name('expediente')->post('liquidacion/actualizar/recibo',  'Liquidacion\LiquidacionController@putActualizarNroRecibo');
 Route::name('expediente')->post('liquidacion/expediente/liquidacion/id/seleccionado',  'Liquidacion\LiquidacionController@obtenerLiquidacionDetalleSeleccionadas');
-
+Route::name('expediente')->get('liquidacion/expediente/estado',  'Liquidacion\LiquidacionController@getExpedienteByEstado');
+Route::name('expediente')->post('liquidacion/expediente/liquidacion/generar',  'Liquidacion\LiquidacionController@generarLiquidacion');
 Route::name('ingresobruto')->get('liquidacion/ingreso/bruto/ultimo',  'Liquidacion\LiquidacionController@getUltimoIngresoBruto');
-
-
-
-
-
-
 
 });
 
-
+Route::name('liquidacion')->get('liquidacion/obrasocial/detalle', 'Liquidacion\LiquidacionController@getObrasSocialesByLiquidacion');
+Route::name('liquidacion')->get('liquidacion/detalle/by/matricula', 'Liquidacion\LiquidacionController@getLiquidacionDetalleByMatricula');
+Route::name('liquidacion')->get('liquidacion/detalle/by/id/liquidacion', 'Liquidacion\LiquidacionController@getLiquidacionDetalleByidLiquidacion');
+Route::name('expediente')->get('liquidacion/expediente/liquidacion/id',  'Liquidacion\LiquidacionController@getExpedienteByIdLiquidacion');
 /* -------------------------------------------------------------------------- */
 /*                                 LIQUIDACION                                */
 /* -------------------------------------------------------------------------- */
@@ -151,7 +152,7 @@ Route::name('liquidacion')->put( 'liquidacion/expediente/actualizar/{id}',  'Liq
 Route::name('liquidacion')->get( 'liquidacion/expediente/desafectar',  'Liquidacion\LiquidacionController@desafectarExpediente');
 Route::name('liquidacion')->get( 'liquidacion/liquidar',  'Liquidacion\LiquidacionController@liquidar');
 
-
+Route::name('liquidacion')->put( 'liquidacion/registro/detalle/{id}',  'Liquidacion\LiquidacionController@putLiquidacionDetalle');
 Route::name('liquidacion')->put( 'liquidacion/orden',  'Liquidacion\LiquidacionController@auditarOrdenes');
 Route::name('liquidacion')->put( 'liquidacion/generar/expediente',  'Liquidacion\LiquidacionController@putGenerarExpediente');
 Route::name('liquidacion')->post( 'liquidacion/generar/expediente',  'Liquidacion\LiquidacionController@setGenerarExpediente');
@@ -242,6 +243,9 @@ Route::name('archivos')->post('/multiuploads/estudios/datos', 'Upload\UploadCont
 Route::name('archivos')->post('/multiuploads/texto', 'Files\FilesController@createTestTextFile');
 Route::name('archivos')->post('/multiuploads/texto/cirugia', 'Files\FilesController@createTestTextFileCirugia');
 Route::name('archivos')->get('/multiuploads/estudios/verimagen', 'Upload\UploadController@getEstudioImagenes');
+Route::name('archivos')->get('/files/rentas/by/liquidacion', 'Files\FilesController@createTextFileRentas');
+Route::name('archivos')->post('/files/dos/by/excel', 'Files\FilesController@createTextFileDos');
+
 
 
 /* -------------------------------------------------------------------------- */

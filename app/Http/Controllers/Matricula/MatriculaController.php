@@ -205,6 +205,14 @@ class MatriculaController extends ApiController
 }
 
 
+public function getPacientes(Request $request)
+{
+    $res = DB::select( DB::raw("SELECT `id_paciente`, `pac_nombre`, `pac_sexo`, `pac_dni`, `pac_diagnostico`, nro_afiliado FROM `pac_paciente` LIMIT 5000
+    "));
+
+
+      return response()->json($res, "200");
+}
 
 public function getPacienteByCondicion(Request $request)
 {
@@ -212,11 +220,11 @@ public function getPacienteByCondicion(Request $request)
   $condicion =  $request->input('condicion');
 
   if ( $condicion === 'dni'){
-    $res = DB::select( DB::raw("SELECT `id_paciente`, `pac_nombre`, `pac_sexo`, `pac_dni`, `pac_diagnostico` FROM `pac_paciente` WHERE  pac_dni LIKE '%".$pac_dni."%'
+    $res = DB::select( DB::raw("SELECT `id_paciente`, `pac_nombre`, `pac_sexo`, `pac_dni`, `pac_diagnostico`, nro_afiliado FROM `pac_paciente` WHERE  pac_dni LIKE '%".$pac_dni."%'
     "));
   }
   if ( $condicion === 'apellido'){
-    $res = DB::select( DB::raw("SELECT `id_paciente`, `pac_nombre`, `pac_sexo`, `pac_dni`, `pac_diagnostico` FROM `pac_paciente` WHERE  pac_nombre LIKE '%".$pac_dni."%'
+    $res = DB::select( DB::raw("SELECT `id_paciente`, `pac_nombre`, `pac_sexo`, `pac_dni`, `pac_diagnostico`, nro_afiliado FROM `pac_paciente` WHERE  pac_nombre LIKE '%".$pac_dni."%'
     "));
   }
 
@@ -232,11 +240,27 @@ public function setPaciente(Request $request) {
       'pac_nombre' => $request->pac_nombre,
       'pac_sexo' => $request->pac_sexo,
       'pac_dni' => $request->pac_dni,
-      'pac_diagnostico' => $request->pac_diagnostico
+      'pac_diagnostico' => $request->pac_diagnostico,
+      'nro_afiliado' => $request->nro_afiliado
 
   ]);
     return response()->json($id, "200");
   }
 
+
+
+  public function putPaciente(Request $request, $id){
+
+    $res =  DB::table('pac_paciente')
+    ->where('id_paciente', $id)
+    ->update([
+      'pac_nombre' => $request->input('pac_nombre'),
+      'pac_sexo' => $request->input('pac_sexo'),
+      'pac_dni' => $request->input('pac_dni'),
+      'pac_diagnostico' => $request->input('pac_diagnostico'),
+      'nro_afiliado' => $request->input('nro_afiliado')
+      ]);
+      return response()->json($res, "200");
+  }
 
 }

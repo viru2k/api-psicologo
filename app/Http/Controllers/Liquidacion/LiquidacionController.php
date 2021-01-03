@@ -535,7 +535,7 @@ public function getLiquidacionDetalleByidLiquidacion(Request $request)
   $res = DB::select( DB::raw("SELECT id_liquidacion_detalle, mat_matricula.mat_matricula_psicologo AS mat_matricula,CONCAT(mat_matricula.mat_apellido,' ', mat_matricula.mat_nombre) AS mat_apellidoynombre,
    mat_matricula.mat_cuit, mat_matricula.mat_cbu, mat_matricula.mat_dni, mat_matricula.mat_banco_nombre, os_liq_bruto, os_ing_brutos, os_lote_hogar, os_gasto_admin, os_imp_cheque,
   os_descuentos, os_desc_matricula, os_desc_fondo_sol, os_otros_ing_eg, os_liq_neto, num_comprobante, os_num_ing_bruto, os_liq_liquidacion_generada.id_liquidacion_generada,
-  os_liq_liquidacion_generada.id_liquidacion ,os_liq_liquidacion_generada.os_fecha
+  os_liq_liquidacion_generada.id_liquidacion ,os_liq_liquidacion_generada.os_fecha, mat_cuit, mat_ning_bto, mat_domicilio_particular
   FROM  os_liq_liquidacion_detalle, os_liq_liquidacion_generada , mat_matricula
   WHERE  mat_matricula.mat_matricula_psicologo = os_liq_liquidacion_detalle.mat_matricula
   AND os_liq_liquidacion_detalle.id_liquidacion_generada = os_liq_liquidacion_generada.id_liquidacion_generada
@@ -547,24 +547,43 @@ public function getLiquidacionDetalleByidLiquidacion(Request $request)
 
 
 
+public function getLiquidacionDetalleByMatricula(Request $request)
+{
+  $mat_matricula = $request->input('mat_matricula');
+  $res = DB::select( DB::raw("SELECT id_liquidacion_detalle, mat_matricula.mat_matricula_psicologo AS mat_matricula,CONCAT(mat_matricula.mat_apellido,' ', mat_matricula.mat_nombre) AS mat_apellidoynombre,
+   mat_matricula.mat_cuit, mat_matricula.mat_cbu, mat_matricula.mat_dni, mat_matricula.mat_banco_nombre, os_liq_bruto, os_ing_brutos, os_lote_hogar, os_gasto_admin, os_imp_cheque,
+  os_descuentos, os_desc_matricula, os_desc_fondo_sol, os_otros_ing_eg, os_liq_neto, num_comprobante, os_num_ing_bruto, os_liq_liquidacion_generada.id_liquidacion_generada,
+  os_liq_liquidacion_generada.id_liquidacion ,os_liq_liquidacion_generada.os_fecha, mat_cuit, mat_ning_bto, mat_domicilio_particular
+  FROM  os_liq_liquidacion_detalle, os_liq_liquidacion_generada , mat_matricula
+  WHERE  mat_matricula.mat_matricula_psicologo = os_liq_liquidacion_detalle.mat_matricula
+  AND os_liq_liquidacion_detalle.id_liquidacion_generada = os_liq_liquidacion_generada.id_liquidacion_generada
+  AND os_liq_liquidacion_detalle.mat_matricula = ".$mat_matricula." ORDER BY  os_liq_liquidacion_generada.id_liquidacion_generada DESC
+  "));
+
+      return response()->json($res, "200");
+}
+
+
+
 public function getOrdenByMatriculaAndLiquidacion(Request $request)
 {
   $mat_matricula = $request->input('mat_matricula');
-  $estado = $request->input('id_liquidacion');
+  $id_liquidacion = $request->input('id_liquidacion');
 
   $res = DB::select( DB::raw("SELECT id_os_liq_orden, os_liq_orden.mat_matricula, os_liq_orden.id_obra_social, os_liq_orden.id_sesion, os_liq_orden.id_paciente, os_liq_orden.os_fecha,
   os_liq_orden.os_cantidad, os_liq_orden.os_precio_sesion, os_liq_orden.os_precio_total, os_liq_orden.os_estado_liquidacion, os_liq_orden.os_liq_numero,
   os_obra_social.os_nombre, os_sesion.id_sesion_tipo, os_sesion.id_precio, os_liq_liquidacion.os_liq_numero,
-  os_liq_liquidacion.os_fecha_desde, os_liq_liquidacion.os_fecha_hasta, os_liq_liquidacion.id_os_liquidacion, pac_paciente.pac_nombre, pac_paciente.pac_dni, pac_paciente.pac_sexo
-  FROM  os_liq_orden, os_obra_social, os_sesion, os_liq_liquidacion, pac_paciente
+  os_liq_liquidacion.os_fecha_desde, os_liq_liquidacion.os_fecha_hasta, os_liq_liquidacion.id_os_liquidacion,
+  pac_paciente.pac_nombre, pac_paciente.pac_dni, pac_paciente.pac_sexo, pac_paciente.nro_afiliado, os_sesion_tipo.os_sesion, os_sesion_tipo.os_sesion_codigo
+  FROM  os_liq_orden, os_obra_social, os_sesion, os_liq_liquidacion, pac_paciente, os_sesion_tipo
   WHERE   os_liq_orden.id_obra_social = os_obra_social.id
   AND os_liq_orden.id_sesion = os_sesion.id_sesion
+  AND os_sesion.id_sesion_tipo = os_sesion_tipo.id_sesion_tipo
   AND os_liq_liquidacion.id_os_liquidacion = os_liq_orden.os_liq_numero
   AND pac_paciente.id_paciente = os_liq_orden.id_paciente
-  AND os_liq_liquidacion.id_liquidacion = :id_liquidacion
-  AND os_liq_orden.mat_matricula = :mat_matricula
-  "),array('mat_matricula' => $mat_matricula,
-             'id_liquidacion ' => $id_liquidacion ));
+  AND os_liq_liquidacion.id_liquidacion = ".$id_liquidacion."
+  AND os_liq_orden.mat_matricula = ".$mat_matricula."
+  "));
 
       return response()->json($res, "200");
 }
@@ -578,7 +597,8 @@ public function getOrdenByMatriculaAndLiquidacion(Request $request)
 
     $res = DB::select( DB::raw("SELECT os_obra_social.id as id_obra_social, id_os_liq_orden, mat_matricula,CONCAT(mat_matricula.mat_apellido, ' ',mat_matricula.mat_nombre ) AS mat_apellido_nombre, os_liq_orden.id_sesion,
    os_fecha, os_cantidad, os_precio_sesion, os_precio_total, os_estado_liquidacion, os_liq_numero, os_sesion_tipo.os_sesion, os_sesion_tipo.os_sesion_codigo, pac_paciente.id_paciente,
-   pac_paciente.pac_nombre, pac_paciente.pac_dni, pac_paciente.pac_dni,  os_obra_social.os_nombre
+   pac_paciente.pac_nombre, pac_paciente.pac_dni, pac_paciente.pac_sexo,  os_obra_social.os_nombre, pac_paciente.nro_afiliado,
+   mat_cuit, mat_ning_bto, mat_domicilio_particular
    FROM os_liq_orden, mat_matricula, os_obra_social, os_sesion, os_sesion_tipo, pac_paciente
    WHERE os_liq_orden.mat_matricula = mat_matricula.mat_matricula_psicologo
    AND os_liq_orden.id_obra_social = os_obra_social.id AND os_liq_orden.id_sesion = os_sesion.id_sesion
@@ -603,7 +623,8 @@ public function getOrdenByMatriculaAndLiquidacion(Request $request)
 
     $res = DB::select( DB::raw("SELECT os_obra_social.id as id_obra_social, id_os_liq_orden, mat_matricula,CONCAT(mat_matricula.mat_apellido, ' ',mat_matricula.mat_nombre ) AS mat_apellido_nombre, os_liq_orden.id_sesion,
    os_fecha, os_cantidad, os_precio_sesion, os_precio_total, os_estado_liquidacion, os_liq_numero, os_sesion_tipo.os_sesion, os_sesion_tipo.os_sesion_codigo, pac_paciente.id_paciente,
-   pac_paciente.pac_nombre, pac_paciente.pac_dni, pac_paciente.pac_dni, os_obra_social.os_nombre
+   pac_paciente.pac_nombre, pac_paciente.pac_dni, pac_paciente.pac_sexo, pac_paciente.nro_afiliado, os_obra_social.os_nombre,
+   mat_cuit, mat_ning_bto, mat_domicilio_particular
    FROM os_liq_orden, mat_matricula, os_obra_social, os_sesion, os_sesion_tipo, pac_paciente
    WHERE os_liq_orden.mat_matricula = mat_matricula.mat_matricula_psicologo
    AND os_liq_orden.id_obra_social = os_obra_social.id AND os_liq_orden.id_sesion = os_sesion.id_sesion
@@ -625,7 +646,8 @@ public function getOrdenByMatriculaAndLiquidacion(Request $request)
 
     $res = DB::select( DB::raw("SELECT os_liq_orden.mat_matricula, sum(os_precio_total) AS os_liq_bruto
     FROM os_liq_orden, os_liq_liquidacion
-    WHERE  os_liq_orden.os_liq_numero = os_liq_liquidacion.id_os_liquidacion AND os_liq_liquidacion.id_liquidacion = :id_liquidacion GROUP BY os_liq_orden.mat_matricula
+    WHERE  os_liq_orden.os_liq_numero = os_liq_liquidacion.id_os_liquidacion
+    AND os_liq_liquidacion.id_liquidacion = :id_liquidacion GROUP BY os_liq_orden.mat_matricula
      "), array(
          'id_liquidacion' =>$id_liquidacion
        ));
@@ -999,4 +1021,112 @@ public function getUltimoIngresoBruto(Request $request) {
 
 
 
+public function putLiquidacionDetalle(Request $request, $id){
+
+
+    $res =  DB::table('os_liq_liquidacion_detalle')
+    ->where('id_liquidacion_detalle', $id)
+    ->update([
+        'os_liq_bruto' => $request->input('os_liq_bruto'),
+        'os_ing_brutos' => $request->input('os_ing_brutos'),
+        'os_lote_hogar' => $request->input('os_lote_hogar'),
+        'os_gasto_admin' => $request->input('os_gasto_admin'),
+        'os_imp_cheque' => $request->input('os_imp_cheque'),
+        'os_descuentos' => $request->input('os_descuentos'),
+        'os_desc_matricula' => $request->input('os_desc_matricula'),
+        'os_desc_fondo_sol' => $request->input('os_desc_fondo_sol'),
+        'os_otros_ing_eg' => $request->input('os_otros_ing_eg'),
+        'os_liq_neto' => $request->input('os_liq_neto'),
+        'num_comprobante' => $request->input('num_comprobante'),
+        'os_num_ing_bruto' => $request->input('os_num_ing_bruto')
+    ]);
+  return response()->json($res, "200");
+
+  }
+
+
+  public function getObrasSocialesByLiquidacion(Request $request) {
+
+    $id_liquidacion_generada =$request->input('id_liquidacion_generada') ;
+
+    $res = DB::select( DB::raw("SELECT DISTINCT os_obra_social.os_nombre , os_liq_liquidacion.os_liq_numero, os_liq_liquidacion.os_fecha_desde
+    FROM `os_liq_liquidacion_generada`, os_liq_liquidacion, os_obra_social
+    WHERE os_liq_liquidacion_generada.id_liquidacion_generada = os_liq_liquidacion.id_liquidacion
+    AND os_liq_liquidacion.id_os_obra_social = os_obra_social.id
+    AND os_liq_liquidacion_generada.id_liquidacion_generada = :id_liquidacion_generada
+    "), array(
+         'id_liquidacion_generada' =>$id_liquidacion_generada
+       ));
+
+        return response()->json($res, "200");
+  }
+
+  public function getUltimoNroIngBrutos(Request $request) {
+
+    $id_liquidacion_generada =$request->input('id_liquidacion_generada') ;
+
+    $res = DB::select( DB::raw("SELECT MAX(`os_num_ing_bruto`) as ultimo
+    FROM `os_liq_liquidacion_detalle`
+    "));
+
+        return response()->json($res, "200");
+  }
+
+
+  public function getUltimoNroRecibo(Request $request) {
+
+    $id_liquidacion_generada =$request->input('id_liquidacion_generada') ;
+
+    $res = DB::select( DB::raw("SELECT MAX(`num_comprobante`) as ultimo
+    FROM `os_liq_liquidacion_detalle`
+    "));
+
+        return response()->json($res, "200");
+  }
+
+
+
+  public function putActualizarNroIngBrutos(Request $request) {
+    $TMP_request = $request->all();
+    $proximo_numero = $request->input('proximo_numero');
+    $i = 0;
+   while(isset($request[$i])){
+
+    $estado = DB::update( DB::raw("UPDATE os_liq_liquidacion_detalle
+    SET os_num_ing_bruto = '".$proximo_numero."'
+    WHERE id_liquidacion_detalle = '".$request[$i]["id_liquidacion_detalle"]."'
+    AND os_liq_bruto >= 1500
+ "));
+   /*  $res =  DB::table('os_liq_liquidacion_detalle')
+    ->where('id_liquidacion_detalle', $request[$i]["id_liquidacion_detalle"])
+    ->where('os_liq_bruto', '>=', 1500)
+    ->update([
+
+        'os_num_ing_bruto' => $proximo_numero
+    ]); */
+    $proximo_numero++;
+
+    $i++;
+   }
+}
+
+
+
+public function putActualizarNroRecibo(Request $request) {
+    $TMP_request = $request->all();
+    $proximo_numero = $request->input('proximo_numero');
+    $i = 0;
+   while(isset($request[$i])){
+
+    $res =  DB::table('os_liq_liquidacion_detalle')
+    ->where('id_liquidacion_detalle', $request[$i]["id_liquidacion_detalle"])
+    ->update([
+
+        'num_comprobante' => $proximo_numero
+    ]);
+    $proximo_numero++;
+
+    $i++;
+   }
+}
 }

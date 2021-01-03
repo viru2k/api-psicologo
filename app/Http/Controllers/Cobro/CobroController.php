@@ -199,6 +199,7 @@ class CobroController extends ApiController
     }
 
 
+
     public function getDeudaByPlanAndMatricula(Request $request)
     {
         $mat_matricula = $request->input('mat_matricula');
@@ -218,6 +219,30 @@ class CobroController extends ApiController
           return response()->json($res, "200");
     }
 
+
+
+    public function getDeudaByMatriculaAndEstadoByIdLiquidacionDetalle(Request $request)
+    {
+        $mat_matricula = $request->input('mat_matricula');
+        $estado = $request->input('estado');
+        $id_liquidacion_detalle = $request->input('id_liquidacion_detalle');
+
+      $res = DB::select( DB::raw("SELECT id_pago_historico, mat_matricula, CONCAT(mat_matricula.mat_apellido, ' ' , mat_matricula.mat_nombre) AS mat_nombreyapellido, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_interes, mat_pago_historico.mat_descripcion,
+      mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario ,
+      mat_pago_historico.id_concepto, mat_concepto , nombreyapellido, id_liquidacion_detalle
+      FROM `mat_pago_historico`, mat_concepto, mat_matricula   , users
+      WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo
+      AND mat_concepto.id_concepto = mat_pago_historico.id_concepto
+      AND users.id = mat_pago_historico.id_usuario
+      AND mat_matricula.mat_matricula_psicologo = :mat_matricula
+      AND mat_estado = :estado
+      AND id_liquidacion_detalle = :id_liquidacion_detalle
+      "),array('mat_matricula' => $mat_matricula,
+               'estado' => $estado,
+            'id_liquidacion_detalle' => $id_liquidacion_detalle));
+
+          return response()->json($res, "200");
+    }
 
 
     public function getPlanes(Request $request)
@@ -313,8 +338,8 @@ class CobroController extends ApiController
       $tmp_fecha = str_replace('/', '-', $request->input('mat_fecha_vencimiento'));
       $mat_fecha_vencimiento =  date('Y-m-d', strtotime($tmp_fecha));
   //    echo '-'. $request->input('mat_monto'). '-';
-  echo $id;
-  echo $request->input('mat_monto_final');
+ // echo $id;
+ // echo $request->input('mat_monto_final');
       $res =  DB::table('mat_pago_historico')
       ->where('id_pago_historico', $id)
       ->update([
@@ -465,7 +490,7 @@ class CobroController extends ApiController
         $periodoInicial = 0;
         $psicologo = DB::select( DB::raw("SELECT mat_matricula_psicologo, mat_fecha_egreso
         FROM mat_matricula
-        WHERE mat_estado_matricula = 'A'
+        WHERE mat_estado_matricula IN('I', 'A')
         ORDER BY  mat_matricula_psicologo ASC
         "));
 
@@ -484,7 +509,7 @@ class CobroController extends ApiController
         $periodoInicial = 0;
         $psicologo = DB::select( DB::raw("SELECT mat_matricula_psicologo, mat_fecha_egreso
         FROM mat_matricula
-        WHERE mat_estado_matricula = 'A'
+        WHERE mat_estado_matricula IN('I', 'A')
         AND mat_matricula_psicologo = '".$mat_matricula_psicologo."'
         ORDER BY  mat_matricula_psicologo ASC
         "));
@@ -500,7 +525,7 @@ class CobroController extends ApiController
        // echo $periodoInicial;
         $psicologo = DB::select( DB::raw("SELECT mat_matricula_psicologo, mat_fecha_egreso
         FROM mat_matricula
-        WHERE mat_estado_matricula = 'A'
+        WHERE mat_estado_matricula IN('I', 'A')
         AND mat_matricula_psicologo = '".$mat_matricula_psicologo."'
         ORDER BY  mat_matricula_psicologo ASC
         "));
@@ -664,8 +689,8 @@ class CobroController extends ApiController
   }
 
   private function esAnioGracia($mesAvalidar, $fechMatricula) {
-    echo date($mesAvalidar).' - ';
-    echo date($fechMatricula).'  ';
+   // echo date($mesAvalidar).' - ';
+   // echo date($fechMatricula).'  ';
 
 
     $first_date = date($mesAvalidar);
@@ -673,18 +698,18 @@ class CobroController extends ApiController
     $d1 = new DateTime($mesAvalidar); // FECHA ACTUAL
     $d2 = new DateTime($fechMatricula); // FECHA MATRICULA
     $difference = $d2->diff($d1);
-    echo ' diferencia ->'. $difference->days. ' ';
+   // echo ' diferencia ->'. $difference->days. ' ';
    // var_dump($difference);
   //  echo ' diferencia ->'. $difference->m. ' ';
 // FALTA DEFINIR QUE SEA MAYOR A DOS AÑOS, SOLO  ESTA TOMANDO EL AÑO DE GRACIA Y EL AÑO PRIMERO
 
     if(($difference->days <= 1095)&&($difference->days > 365)){
-        echo ' matricula bonificada |';
+      //  echo ' matricula bonificada |';
         return 'bonificada';
     }
 
     if($difference->days > 1095){
-        echo ' matricula regular |';
+       // echo ' matricula regular |';
         return 'regular';
     }
 
