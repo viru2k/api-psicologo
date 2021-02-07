@@ -5,7 +5,7 @@ namespace App\Http\Controllers\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ApiController;
 use App\User;
-use Illuminate\Support\Facades\DB; 
+use Illuminate\Support\Facades\DB;
 
 class UserController extends ApiController
 {
@@ -22,7 +22,7 @@ class UserController extends ApiController
     {
         $user = User::all();
         return $this->showAll($user);
-     
+
     }
 
     /**
@@ -39,7 +39,7 @@ class UserController extends ApiController
         ];
 
         $this->validate($request, $rules);
-    
+
         $params = $request->all();
         $params ['password'] = bcrypt($request->password);
         $params['verified'] = User::USUARIO_NO_VERIFICADO;
@@ -47,7 +47,7 @@ class UserController extends ApiController
         $params['admin'] = User::USUARIO_REGULAR;
 
         $usuario = User::create($params);
-        
+
         return response()-> json(['data'=>$usuario],201);
     }
 
@@ -78,25 +78,25 @@ class UserController extends ApiController
     }
 
 
-    
+
     public function getPassword(Request $request)
     {
-           
-        
+
+
         $password =$request->input('password');
         $ret_password=bcrypt($password);
-       
+
       return response()->json($ret_password, 201);
     }
 
     public function getUserDataAndMenu(Request $request )
     {
-              
+
         $email =  $request->input('email');
      //echo $fecha_turno;
      $horario = DB::table('user_modulo', 'modulo','users')
-     ->join('users', 'users.id', '=', 'user_modulo.user_id')        
-     ->join('modulo', 'modulo.id', '=', 'user_modulo.modulo_id')        
+     ->join('users', 'users.id', '=', 'user_modulo.user_id')
+     ->join('modulo', 'modulo.id', '=', 'user_modulo.modulo_id')
      ->select(
         'users.id',
         'users.name',
@@ -104,69 +104,69 @@ class UserController extends ApiController
         'users.nombreyapellido',
         'users.email',
         'modulo.id as modulo_id',
-        'modulo.nombre as modulo_nombre',   
+        'modulo.nombre as modulo_nombre',
         'titulo',
         'user_modulo.id as user_modulo_id',
         'users.puede_notificar'
         )
-            ->where('users.email','=',$email)      
-            ->orderBy('titulo', 'ASC')                             
+            ->where('users.email','=',$email)
+            ->orderBy('titulo', 'ASC')
             ->get();
-           
+
         return $this->showAll($horario);
-    
+
     }
-    
+
 
     public function getMenu(Request $request )
     {
-              
-       
+
+
      //echo $fecha_turno;
-     $horario = DB::table( 'modulo')       
+     $horario = DB::table( 'modulo')
      ->select(
         'id as modulo_id',
         'nombre as modulo_nombre',
         'titulo'
-        )            
+        )
         ->orderBy('titulo', 'ASC')
        ->get();
-           
+
         return $this->showAll($horario);
-    
+
     }
 
-    public function agregarMenuUsuario(Request $request,$id){       
-      
+    public function agregarMenuUsuario(Request $request,$id){
+
         $i = 0;
 
      //  echo $request[0]['modulo_id'];
        foreach($request as $req) {
         $res = DB::select( DB::raw(" INSERT INTO user_modulo (user_id, modulo_id) SELECT '".$id."','".$request[$i]['modulo_id']."' FROM DUAL
-        WHERE NOT EXISTS 
+        WHERE NOT EXISTS
           (SELECT user_id,modulo_id FROM user_modulo WHERE user_id = '".$id."' AND modulo_id= '".$request[$i]['modulo_id']."' )"));
-        $i++; 
+        $i++;
        }
-      
+
   /*     $modulo_id =   $request['modulo_id'] ;
-         
+
          $id= DB::table('user_modulo')->insertGetId(
            [ 'user_id' => $id,
-            'modulo_id' =>  $modulo_id    ]    
+            'modulo_id' =>  $modulo_id    ]
         );
-    
+
 */
       //  var_dump($request);
 
-        return response()->json($request, "201"); 
+        return response()->json($request, "201");
 //echo $id;
     }
 
-    
-    public function borrarMenuUsuario($id){            
+
+    public function borrarMenuUsuario($id){
         DB::table('user_modulo')->where('id', $id)->delete();
-        
-        return response()->json("ok", "201"); 
+
+        return response()->json("ok", "201");
 //echo $id;
     }
     /**
@@ -200,13 +200,13 @@ class UserController extends ApiController
         //
     }
 
-    
+
     public function getUsuarios(Request $request )
     {
                $horario = DB::select( DB::raw(" SELECT `id`, `name`, `nombreyapellido`, `email` FROM `users`             "));
 
         return response()->json($horario, 201);
-    
+
     }
 
     public function CrearUsuario(Request $request )
@@ -220,37 +220,37 @@ class UserController extends ApiController
             'admin' => $request["admin"],
             'puede_notificar'=> 'SI',
             'created_at' => date("Y-m-d H:i:s"),
-            'updated_at' => date("Y-m-d H:i:s")    
-             ]           
-            );  
+            'updated_at' => date("Y-m-d H:i:s")
+             ]
+            );
 
         return response()->json($id, 201);
-    
+
     }
 
     public function EditarUsuario(Request $request, $id)
     {
-        $update = DB::table('users')         
-        ->where('id', $id)->limit(1) 
-        ->update( [            
+        $update = DB::table('users')
+        ->where('id', $id)->limit(1)
+        ->update( [
          'name' =>$request->input('name'),
          'nombreyapellido' =>$request->input('nombreyapellido'),
          'email' =>$request->input('email'),
          'admin' =>$request->input('admin'),
-         'updated_at' => date("Y-m-d H:i:s")  
-          ]);  
+         'updated_at' => date("Y-m-d H:i:s")
+          ]);
           return response()->json($update, 201);
-        } 
+        }
 
-       
-    
+
+
 
     public function EditarUsuarioPassword(Request $request,$id )
     {
 
         bcrypt($request->password);
         //ech
-        $result = DB::select( DB::raw(" 
+        $result = DB::select( DB::raw("
         SELECT * FROM  users WHERE id = :id")
        , array(
            'id' => $id
@@ -259,20 +259,19 @@ class UserController extends ApiController
    $password = $request->input('password');
    $ret_password=bcrypt($password);
 
-       $update = DB::table('users')->limit(1) 
+       $update = DB::table('users')->limit(1)
        ->where('id',  $id)
-       ->update( [ 
-        'password' => bcrypt($request->password),       
-        'updated_at' => date("Y-m-d H:i:s")     ]); 
+       ->update( [
+        'password' => bcrypt($request->password),
+        'updated_at' => date("Y-m-d H:i:s")     ]);
 
-   
+
 
         return response()->json($update, 201);
-    
+
     }
 }
 
 
 
 //$2y$10$1oz148ZpmshOaJvRyILBJ.74kNouYf0cnzU2V2ucLHbViZjXnNlqi
- 

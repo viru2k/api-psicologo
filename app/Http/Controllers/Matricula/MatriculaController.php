@@ -48,7 +48,10 @@ class MatriculaController extends ApiController
     mat_nombre, mat_sexo,mat_matricula.mat_tipo_dni,  mat_matricula.mat_dni, mat_matricula_obra_social.id as mat_matricula_obra_social_id,
     mat_matricula_obra_social.obra_social_id,  os_obra_social.os_nombre  as obra_social_nombre, nro_afiliado
     FROM mat_matricula, mat_matricula_obra_social, os_obra_social
-    WHERE mat_matricula.id = mat_matricula_obra_social.matricula_id AND os_obra_social.id = mat_matricula_obra_social.obra_social_id AND mat_matricula.id = :matricula_id
+    WHERE mat_matricula.id = mat_matricula_obra_social.matricula_id
+    AND os_obra_social.id = mat_matricula_obra_social.obra_social_id
+    AND mat_matricula.id = :matricula_id
+    ORDER BY  os_obra_social.os_nombre ASC
     "),
      array(
       'matricula_id' => $matricula_id
@@ -203,6 +206,29 @@ class MatriculaController extends ApiController
     return response()->json("ok", "201");
 //echo $id;
 }
+
+
+
+public function getPadronObraSocial(Request $request)
+{
+  $obra_social_id =  $request->input('obra_social_id');
+
+  $res = DB::select( DB::raw("SELECT mat_matricula.id, mat_matricula_psicologo_nacional, mat_matricula_psicologo,
+   CONCAT(mat_apellido,' ',mat_nombre) AS mat_nombreyapellido,mat_apellido, mat_nombre, mat_sexo,mat_matricula.mat_tipo_dni,  mat_matricula.mat_especialidad,
+   mat_matricula.mat_orientacion, mat_matricula.mat_abordaje, mat_domicilio_laboral,mat_tel_laboral,
+   mat_domicilio_particular, mat_tel_particular, mat_cuit, mat_ning_bto, mat_domicilio_particular, mat_tel_particular, mat_fecha_egreso, mat_fecha_matricula,
+    mat_matricula_obra_social.id as mat_matricula_obra_social_id,
+    mat_matricula_obra_social.obra_social_id,  os_obra_social.os_nombre  as obra_social_nombre, nro_afiliado
+    FROM mat_matricula, mat_matricula_obra_social, os_obra_social
+    WHERE mat_matricula.id = mat_matricula_obra_social.matricula_id AND os_obra_social.id = mat_matricula_obra_social.obra_social_id AND mat_matricula_obra_social.obra_social_id = :obra_social_id
+    ORDER BY  os_obra_social.os_nombre ASC
+  "),
+   array(
+    'obra_social_id' => $obra_social_id
+  ));
+      return response()->json($res, "200");
+}
+
 
 
 public function getPacientes(Request $request)

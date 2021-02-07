@@ -152,14 +152,6 @@ class FilesController extends ApiController
 
     /****** BUCLE PARA GENERAR EL ARCHIVO CARGA DE DATOS ***** */
 
-    //  $newstr = substr_replace($oldstr, $str_to_insert, $pos, 0);
-    //  $newsCuit = substr_replace('27101791535', '-', 2, 0);
-    //  $newsCuit= substr_replace($newstr, '-', 11, 0);
-    // EJEMPLOS
-    // 27101791535
-    // 27-101791535
-    // 27-10179153-5
-    //   echo $newstr;
        $data = "";
       foreach ($horario as $res) {
         $_newsCuit = str_replace('-', "",$res->mat_cuit);
@@ -215,14 +207,14 @@ class FilesController extends ApiController
 
 		/* VALOR DE CONSULTA DE PROVINCIA */
     	 $VALOR_CONSULTA = "1";
-        $temp = $request['Hoja1'];
-        //var_dump($temp);
-        //var_dump($temp);
-       // echo($temp[0]["numero"]);
-        //$_request = json_decode($request['Hoja1'], true);
+         $data = request()->json()->all();
+         // show type input
+        // dd($data['Hoja1']);
+        //dd($data["Hoja1"][0]);
+        $temp = $data["Hoja1"];
         $in = "";
-       // echo($temp[1227]["PROFESIONAL PSICOLOGO"]);
-       // echo($temp[1227]["nombre"]);
+
+       $data = "";
         $i=0;
         while(isset($temp[$i])){
             $PERIODO =  (date('Ym', strtotime($temp[$i]["fecha"]))).";";//  df.getMesAnio(cell.getContents())+";";
@@ -233,8 +225,8 @@ class FilesController extends ApiController
             $MATRICULA =  $temp[$i]["prestador"].";";
             $PRACTICA = $temp[$i]["practica"].";";
             $CANTIDAD = $temp[$i]["cantidad"];
-            $VALOR_CONSULTA = $temp[$i]["importe"];
-            $_importe = $CANTIDAD * $VALOR_CONSULTA;
+            $VALOR_CONSULTA = $temp[$i]["total"];
+            $_importe =  $VALOR_CONSULTA;
             $IMPORTE = $_importe;
             $IMPORTERECONOCEDOS = $_importe;
 
@@ -242,9 +234,10 @@ class FilesController extends ApiController
             $TIPOPRACTICA.$PRACTICA.$CANTIDAD.";".$IMPORTE.";".$IMPORTERECONOCEDOS.";".$NINTERNACION.$DIENTE.$CARA.
             str_pad("0", 10,'0',STR_PAD_LEFT).";".$FECHAHORA.$CODIGOCLINICA.$TIPOPRESTACION.
             str_pad($BARRAAFILIADO, 3,'0',STR_PAD_LEFT).$IMPORTEHONORARIOS.$ENTER;
-            if($i === 10){
-                echo $cargarRegistro;
-            }
+            $data = $data.$cargarRegistro;
+           // if($i === 10){
+           //     echo $cargarRegistro;
+           // }
 
            // fn.getFormatNumeroComprobanteDiezDigitos(fn.getFormatNumeroComprobanteEntero("0"))+";"
            // +FECHAHORA+CODIGOCLINICA+TIPOPRESTACION+fn.getFormatNumeroComprobanteTresDigitos(fn.getFormatNumeroComprobanteEntero(BARRAAFILIADO))+";"+IMPORTEHONORARIOS+ENTER);
@@ -253,6 +246,17 @@ class FilesController extends ApiController
             $i++;
           //  $_paciente_dni = str_pad($res->paciente_dni, 10,'0',STR_PAD_LEFT);
         }
+
+         /******************************************************************** */
+      /****** CREACION DEL ARCHIVO ***** */
+
+      $destinationPath=public_path()."/TXT/dos/";
+      $file = 'txt_dos.txt';
+
+      if (!is_dir($destinationPath)) {  mkdir($destinationPath,0777,true);  }
+      File::put($destinationPath.$file,$data);
+     // return response()->download($destinationPath.$file);
+     return response()->json('OK', 201);
     }
 
 

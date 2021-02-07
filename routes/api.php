@@ -50,6 +50,7 @@ Route::group(['middleware' => 'admin'], function () {
 Route::name('psicologo')->get('matricula', 'Matricula\MatriculaController@getMatricula');
 Route::name('psicologo')->get('matriculas', 'Matricula\MatriculaController@getMatriculas');
 Route::name('psicologo')->get('matricula/obra/social', 'Matricula\MatriculaController@getMatriculaObraSocial');
+Route::name('psicologo')->get('padron/obra/social', 'Matricula\MatriculaController@getPadronObraSocial');
 Route::name('psicologo')->put('matricula/{id}',  'Matricula\MatriculaController@putMatricula');
 Route::name('psicologo')->post('matricula', 'Matricula\MatriculaController@setMatricula');
 Route::name('psicologo')->delete('matricula/{id}', 'Matricula\MatriculaController@borrarMatriculaObraSocial');
@@ -94,7 +95,8 @@ Route::name('concepto')->put('concepto/{id}',  'Cobro\CobroController@putConcept
 
 Route::name('cobros')->get('cobro/by/matricula', 'Cobro\CobroController@getDeudaByMatricula');
 Route::name('cobros')->get('cobro/by/matricula/estado', 'Cobro\CobroController@getDeudaByMatriculaAndEstado');
-Route::name('cobros')->get('cobro/by/matricula/estado/detalle/liquidacion', 'Cobro\CobroController@getDeudaByMatriculaAndEstadoByIdLiquidacionDetalle');
+Route::name('cobros')->get('cobro/registro/eliminar', 'Cobro\CobroController@putRegistroCobroEliminado');
+
 
 Route::name('cobros')->get('cobro/by/matricula/plan', 'Cobro\CobroController@getDeudaByPlanAndMatricula');
 Route::name('cobros')->get('cobro/by/matricula/by/dates', 'Cobro\CobroController@getDeudaBydMatriculaBetweenDates');
@@ -113,6 +115,7 @@ Route::name('deuda')->get('deuda/psicologo', 'Cobro\CobroController@generarDeuda
 
 });
 
+Route::name('cobros')->get('cobro/by/matricula/estado/detalle/liquidacion', 'Cobro\CobroController@getDeudaByMatriculaAndEstadoByIdLiquidacionDetalle');
 
 /* -------------------------------------------------------------------------- */
 /*                                 LIQUIDACION                                */
@@ -158,6 +161,7 @@ Route::name('liquidacion')->put( 'liquidacion/generar/expediente',  'Liquidacion
 Route::name('liquidacion')->post( 'liquidacion/generar/expediente',  'Liquidacion\LiquidacionController@setGenerarExpediente');
 Route::name('liquidacion')->post( 'liquidacion/generar/liquidacion/detalle',  'Liquidacion\LiquidacionController@generarLiquidacionDetalle');
 Route::name('orden')->delete('orden/eliminar/{id}',  'Liquidacion\LiquidacionController@destroyOrdenById');
+Route::name('liquidacion')->get( 'liquidacion/actuacion/profesional',  'Liquidacion\LiquidacionController@getActuacionProfesionalByMatricula');
 
 });
 
@@ -227,6 +231,7 @@ Route::name('psicologo')->post('liquidacion/detalle/obrasocial', 'Padron\PadronC
 
 
 
+
 //Auth::routes(['register' => false]);
 
 
@@ -235,6 +240,8 @@ Route::name('psicologo')->get('informacion/privada', 'Padron\LandingController@g
 Route::name('psicologo')->get('informacion/privada/facturacion/by/matricula', 'Padron\PadronController@getFacturaByMatricula');
 Route::name('psicologo')->get('informacion/privada/facturacion/by/idliquidacion', 'Padron\PadronController@getFacturaByLiquidacion');
 Route::name('psicologo')->get('liquidacion/liquidacion/generada', 'Padron\PadronController@getLiquidacionGenerada');
+Route::name('psicologo')->get('liquidacion/liquidacion/generada', 'Padron\PadronController@getLiquidacionGenerada');
+
 
 
 /** FILE MANAGER **/
@@ -244,7 +251,7 @@ Route::name('archivos')->post('/multiuploads/texto', 'Files\FilesController@crea
 Route::name('archivos')->post('/multiuploads/texto/cirugia', 'Files\FilesController@createTestTextFileCirugia');
 Route::name('archivos')->get('/multiuploads/estudios/verimagen', 'Upload\UploadController@getEstudioImagenes');
 Route::name('archivos')->get('/files/rentas/by/liquidacion', 'Files\FilesController@createTextFileRentas');
-Route::name('archivos')->post('/files/dos/by/excel', 'Files\FilesController@createTextFileDos');
+Route::name('archivos')->post('files/dos/by/excel', 'Files\FilesController@createTextFileDos');
 
 
 
@@ -328,7 +335,7 @@ Route::name('facturacion-elementos')->post('afip/elementos/articulo/tipo', 'Afip
 
 
 Route::name('user-info')->get('user/password', 'User\UserController@getPassword');
-Route::name('user-info')->get('user/info/menu', 'User\UserController@getUserDataAndMenu');
+
 Route::name('user-info')->get('user/menu', 'User\UserController@getMenu');
 Route::name('user-info')->post('user/menu/add/{id}', 'User\UserController@agregarMenuUsuario');
 Route::name('user-info')->delete('user/menu/{id}', 'User\UserController@borrarMenuUsuario');

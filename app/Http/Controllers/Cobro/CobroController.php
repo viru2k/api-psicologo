@@ -59,9 +59,7 @@ class CobroController extends ApiController
 
       $i = 0;
       $j = 0;
-   //   var_dump($request->concepto[0]);
        while(isset($request->concepto[$i])){
-        //echo 'concepto '.$request->concepto[$i]["mat_matricula"];
         $update = DB::table('mat_pago_historico')
         ->where('id_pago_historico', $request->concepto[$i]['id_pago_historico']) ->limit(1)
         ->update( [
@@ -144,6 +142,9 @@ class CobroController extends ApiController
         ]);
         return response()->json($res, "200");
     }
+
+
+
 
 
 
@@ -438,12 +439,6 @@ class CobroController extends ApiController
 
     public function putRegistroCobro(Request $request, $id)
     {
-     //   $tmp_fecha = str_replace('/', '-', $request["os_fecha_desde"]);
-     //   $os_fecha_desde =  date('Y-m-d', strtotime($tmp_fecha));
-     //   $tmp_fecha = str_replace('/', '-', $request["os_fecha_hasta"]);
-     //   $os_fecha_hasta =  date('Y-m-d', strtotime($tmp_fecha));
-
-
   $i = 0;
     while(isset($request[$i])){
    // echo  $request[$i]["mat_monto"];
@@ -468,6 +463,21 @@ class CobroController extends ApiController
         }
         //echo  $request->registros[0]["id"];
    //   return response()->json($liquidacion_numero, 201);
+
+    }
+
+
+
+
+    public function putRegistroCobroEliminado(Request $request)
+    {
+        $id_pago_historico = $request->input('id_pago_historico');
+        $id_usuario = $request->input('id_usuario');
+
+        $res = DB::update( DB::raw("UPDATE mat_pago_historico
+        SET   mat_estado = 'E', id_usuario = ".$id_usuario."  WHERE id_pago_historico  = ".$id_pago_historico." "));
+
+     return response()->json($id_pago_historico, 201);
 
     }
 
