@@ -344,7 +344,7 @@ class CobroController extends ApiController
       $res =  DB::table('mat_pago_historico')
       ->where('id_pago_historico', $id)
       ->update([
-
+        'id_liquidacion_detalle' => $request->input('id_liquidacion_detalle'),
         'id_concepto' => $request->input('id_concepto'),
         'mat_fecha_pago' => $mat_fecha_pago,
         'mat_fecha_vencimiento' => $mat_fecha_vencimiento,
@@ -366,6 +366,9 @@ class CobroController extends ApiController
     }
 
 
+
+
+    //SELECT mat_matricula.mat_matricula_psicologo, mat_matricula.mat_apellido, mat_matricula.mat_nombre FROM `mat_pago_historico`, mat_matricula WHERE mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo AND mat_fecha_vencimiento <= '2020-10-31' and mat_estado = 'A' GROUP BY mat_matricula
 
     public function setDeuda(Request $request) {
 
@@ -726,5 +729,32 @@ class CobroController extends ApiController
     return 'excenta';
 
   }
+
+
+public function getPadronDeudaByDate(Request $request)
+{
+    $tmp_fecha = str_replace('/', '-', $request->input('fecha'));
+    $fecha =  date('Y-m-d', strtotime($tmp_fecha));
+  $condicion =  $request->input('condicion');
+
+  if ( $condicion === 'deudores'){
+    $res = DB::select( DB::raw("SELECT
+    mat_matricula.mat_matricula_psicologo, mat_matricula.mat_apellido, mat_matricula.mat_nombre
+    FROM `mat_pago_historico`, mat_matricula
+    WHERE mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo
+    AND mat_fecha_vencimiento <= '".$fecha."'
+    AND mat_estado = 'A'
+    GROUP BY mat_matricula
+    "));
+  }
+  if ( $condicion === 'apellido'){
+    $res = DB::select( DB::raw("SELECT `id_paciente`, `pac_nombre`, `pac_sexo`, `pac_dni`, `pac_diagnostico`, nro_afiliado FROM `pac_paciente` WHERE  pac_nombre LIKE '%".$pac_dni."%'
+    "));
+  }
+
+      return response()->json($res, "200");
+}
+
+
 
 }

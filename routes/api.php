@@ -111,7 +111,7 @@ Route::name('plan')->post('plan/by/matricula', 'Cobro\CobroController@setPlanPag
 
 //Route::name('deuda')->get('deuda/psicologo/todos', 'Cobro\CobroController@generarDeudaPsicologos');
 Route::name('deuda')->get('deuda/psicologo', 'Cobro\CobroController@generarDeudaPsicologo');
-
+Route::name('cobros')->get('informe/deuda/psicologo', 'Cobro\CobroController@getPadronDeudaByDate');
 
 });
 

@@ -240,6 +240,7 @@ public function getPacientes(Request $request)
       return response()->json($res, "200");
 }
 
+
 public function getPacienteByCondicion(Request $request)
 {
   $pac_dni =  $request->input('pac_dni');
