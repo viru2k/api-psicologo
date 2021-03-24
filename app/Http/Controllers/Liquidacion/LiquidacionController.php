@@ -640,6 +640,29 @@ public function getOrdenByMatriculaAndLiquidacion(Request $request)
 
 
 
+  public function getLiquidacionOrdenBetweenDatesByPsicologo(Request $request)
+  {
+
+    $mat_matricula = $request->input('mat_matricula');
+    //echo $fecha_desde;
+
+    $res = DB::select( DB::raw("SELECT os_obra_social.id as id_obra_social, id_os_liq_orden, mat_matricula,CONCAT(mat_matricula.mat_apellido, ' ',mat_matricula.mat_nombre ) AS mat_apellido_nombre, os_liq_orden.id_sesion,
+   os_fecha, os_cantidad, os_precio_sesion, os_precio_total, os_estado_liquidacion, os_liq_numero, os_sesion_tipo.os_sesion, os_sesion_tipo.os_sesion_codigo, pac_paciente.id_paciente,
+   pac_paciente.pac_nombre, pac_paciente.pac_dni, pac_paciente.pac_sexo, pac_paciente.nro_afiliado, os_obra_social.os_nombre,
+   mat_cuit, mat_ning_bto, mat_domicilio_particular
+   FROM os_liq_orden, mat_matricula, os_obra_social, os_sesion, os_sesion_tipo, pac_paciente
+   WHERE os_liq_orden.mat_matricula = mat_matricula.mat_matricula_psicologo
+   AND os_liq_orden.id_obra_social = os_obra_social.id AND os_liq_orden.id_sesion = os_sesion.id_sesion
+   AND os_sesion.id_sesion_tipo = os_sesion_tipo.id_sesion_tipo AND os_liq_orden.id_paciente = pac_paciente.id_paciente
+   AND mat_matricula.mat_matricula_psicologo = :mat_matricula
+   AND os_estado_liquidacion != 'PEN' ORDER BY  os_liq_numero DESC LIMIT 1000
+    "), array(
+        'mat_matricula' => $mat_matricula
+      ));
+        return response()->json($res, "200");
+  }
+
+
   public function getActuacionProfesionalByMatricula(Request $request)
   {
     $mat_matricula = $request->input('mat_matricula');

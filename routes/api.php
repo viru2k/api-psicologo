@@ -121,6 +121,7 @@ Route::name('cobros')->get('cobro/by/matricula/estado/detalle/liquidacion', 'Cob
 /*                                 LIQUIDACION                                */
 /* -------------------------------------------------------------------------- */
 
+Route::name('liquidacion')->get('liquidacion/orden/by/dates/estado/psicologo', 'Liquidacion\LiquidacionController@getLiquidacionOrdenBetweenDatesByPsicologo');
 Route::group(['middleware' => 'admin'], function () {
 
 Route::name('liquidacion')->get('liquidacion/calcular/bruto', 'Liquidacion\LiquidacionController@calcularBruto');
