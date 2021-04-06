@@ -667,15 +667,15 @@ public function getOrdenByMatriculaAndLiquidacion(Request $request)
   {
     $mat_matricula = $request->input('mat_matricula');
 
-    $res = DB::select( DB::raw("SELECT os_liq_numero, os_fecha_desde, os_liq_liquidacion_generada.id_liquidacion,
-     os_liq_liquidacion_generada.id_liquidacion_generada, os_liq_liquidacion_generada.os_fecha as fecha_liquidacion,
-     mat_matricula, os_obra_social.id, os_obra_social.os_nombre
-     FROM `os_liq_liquidacion`,  os_liq_liquidacion_detalle,os_liq_liquidacion_generada, os_obra_social
-     WHERE os_obra_social.id = os_liq_liquidacion.id_os_obra_social
-     AND  os_liq_liquidacion_detalle.id_liquidacion_generada = os_liq_liquidacion.id_liquidacion
-     AND os_liq_liquidacion_detalle.id_liquidacion_generada = os_liq_liquidacion_generada.id_liquidacion_generada
-     AND os_liq_liquidacion_detalle.mat_matricula = :mat_matricula
-     ORDER by os_fecha DESC , os_obra_social.id DESC
+    $res = DB::select( DB::raw("SELECT os_liq_liquidacion.os_liq_numero, os_liq_liquidacion.os_fecha_desde,
+    os_liq_liquidacion_generada.id_liquidacion, os_liq_liquidacion_generada.os_fecha,  `id_os_liq_orden`,
+    os_liq_orden.mat_matricula, `id_obra_social`, `id_sesion`, `id_paciente`, os_liq_orden.os_fecha,  os_obra_social.os_nombre
+    FROM `os_liq_orden`, os_liq_liquidacion, os_obra_social, os_liq_liquidacion_generada
+    WHERE  os_liq_orden.os_liq_numero = os_liq_liquidacion.id_os_liquidacion
+    AND os_liq_liquidacion.id_os_obra_social = os_obra_social.id
+    AND os_liq_liquidacion.id_liquidacion = os_liq_liquidacion_generada.id_liquidacion_generada
+    AND  os_liq_orden.mat_matricula = :mat_matricula
+     ORDER by os_liq_liquidacion_generada.os_fecha DESC , os_obra_social.id DESC
 
     "),array('mat_matricula' => $mat_matricula));
 

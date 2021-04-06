@@ -245,23 +245,35 @@ return response()->json($res, 201);
 
     public function getPadron(Request $request)
     {
-        //echo "padron";
-
 
         $consulta =$request->input('consulta');
         $obra_social =$request->input('valor');
+        if($obra_social === "todos") {
+            $res = DB::select( DB::raw("
+            SELECT mat_matricula.id, mat_matricula_psicologo_nacional, mat_matricula_psicologo,
+            CONCAT(mat_apellido,' ',mat_nombre) AS mat_nombreyapellido,mat_apellido, mat_nombre, mat_sexo,mat_matricula.mat_tipo_dni,  mat_matricula.mat_especialidad,
+            mat_matricula.mat_orientacion, mat_matricula.mat_abordaje, mat_domicilio_laboral,mat_tel_laboral,
+            mat_domicilio_particular, mat_tel_particular, mat_cuit, mat_ning_bto, mat_domicilio_particular, mat_tel_particular, mat_fecha_egreso, mat_fecha_matricula
 
-        $res = DB::select( DB::raw("
-        SELECT mat_matricula.id, mat_matricula_psicologo_nacional, mat_matricula_psicologo,
-   CONCAT(mat_apellido,' ',mat_nombre) AS mat_nombreyapellido,mat_apellido, mat_nombre, mat_sexo,mat_matricula.mat_tipo_dni,  mat_matricula.mat_especialidad,
-   mat_matricula.mat_orientacion, mat_matricula.mat_abordaje, mat_domicilio_laboral,mat_tel_laboral,
-   mat_domicilio_particular, mat_tel_particular, mat_cuit, mat_ning_bto, mat_domicilio_particular, mat_tel_particular, mat_fecha_egreso, mat_fecha_matricula,
-    mat_matricula_obra_social.id as mat_matricula_obra_social_id,
-    mat_matricula_obra_social.obra_social_id,  os_obra_social.os_nombre  as obra_social_nombre, nro_afiliado
-    FROM mat_matricula, mat_matricula_obra_social, os_obra_social
-    WHERE mat_matricula.id = mat_matricula_obra_social.matricula_id AND mat_matricula.mat_estado_matricula = 'A' AND os_obra_social.id = mat_matricula_obra_social.obra_social_id AND os_obra_social.os_nombre   LIKE '".$obra_social."%'
-    ORDER BY  os_obra_social.os_nombre ASC
-    "));
+             FROM mat_matricula
+        WHERE
+         mat_matricula.mat_estado_matricula = 'A' ORDER BY mat_apellido ASC
+
+        "));
+
+        } else {
+            $res = DB::select( DB::raw("
+            SELECT mat_matricula.id, mat_matricula_psicologo_nacional, mat_matricula_psicologo,
+       CONCAT(mat_apellido,' ',mat_nombre) AS mat_nombreyapellido,mat_apellido, mat_nombre, mat_sexo,mat_matricula.mat_tipo_dni,  mat_matricula.mat_especialidad,
+       mat_matricula.mat_orientacion, mat_matricula.mat_abordaje, mat_domicilio_laboral,mat_tel_laboral,
+       mat_domicilio_particular, mat_tel_particular, mat_cuit, mat_ning_bto, mat_domicilio_particular, mat_tel_particular, mat_fecha_egreso, mat_fecha_matricula
+        FROM mat_matricula, mat_matricula_obra_social, os_obra_social
+        WHERE mat_matricula.id = mat_matricula_obra_social.matricula_id AND os_obra_social.id = mat_matricula_obra_social.obra_social_id
+        AND mat_matricula.mat_estado_matricula = 'A' AND os_obra_social.os_nombre   LIKE '".$obra_social."%'
+        ORDER BY mat_apellido ASC
+        "));
+        }
+
     return response()->json($res, 201);
 
     }
@@ -270,23 +282,41 @@ return response()->json($res, 201);
 
     public function getPadronActivos(Request $request)
     {
-        //echo "padron";
+
 
 
         $consulta =$request->input('consulta');
         $obra_social =$request->input('valor');
 
-        $res = DB::select( DB::raw("
-        SELECT mat_matricula.id, mat_matricula_psicologo_nacional, mat_matricula_psicologo,
-   CONCAT(mat_apellido,' ',mat_nombre) AS mat_nombreyapellido,mat_apellido, mat_nombre, mat_sexo,mat_matricula.mat_tipo_dni,  mat_matricula.mat_especialidad,
-   mat_matricula.mat_orientacion, mat_matricula.mat_abordaje, mat_domicilio_laboral,mat_tel_laboral,
-   mat_domicilio_particular, mat_tel_particular, mat_cuit, mat_ning_bto, mat_domicilio_particular, mat_tel_particular, mat_fecha_egreso, mat_fecha_matricula,
-    mat_matricula_obra_social.id as mat_matricula_obra_social_id,
-    mat_matricula_obra_social.obra_social_id,  os_obra_social.os_nombre  as obra_social_nombre, nro_afiliado
-    FROM mat_matricula, mat_matricula_obra_social, os_obra_social
-    WHERE mat_matricula.id = mat_matricula_obra_social.matricula_id AND os_obra_social.id = mat_matricula_obra_social.obra_social_id AND os_obra_social.os_nombre   LIKE '".$obra_social."%'
-    ORDER BY  os_obra_social.os_nombre ASC
-    "));
+        if($request->input('valor') === "todos") {
+            $res = DB::select( DB::raw("
+            SELECT mat_matricula.id, mat_matricula_psicologo_nacional, mat_matricula_psicologo,
+            CONCAT(mat_apellido,' ',mat_nombre) AS mat_nombreyapellido,mat_apellido, mat_nombre, mat_sexo,mat_matricula.mat_tipo_dni,  mat_matricula.mat_especialidad,
+            mat_matricula.mat_orientacion, mat_matricula.mat_abordaje, mat_domicilio_laboral,mat_tel_laboral,
+            mat_domicilio_particular, mat_tel_particular, mat_cuit, mat_ning_bto, mat_domicilio_particular, mat_tel_particular, mat_fecha_egreso, mat_fecha_matricula,
+             mat_matricula_obra_social.id as mat_matricula_obra_social_id,
+             mat_matricula_obra_social.obra_social_id,  os_obra_social.os_nombre  as obra_social_nombre
+             FROM mat_matricula, mat_matricula_obra_social, os_obra_social
+        WHERE mat_matricula.id = mat_matricula_obra_social.matricula_id AND os_obra_social.id = mat_matricula_obra_social.obra_social_id
+        AND mat_matricula.mat_estado_matricula = 'A'
+        ORDER BY  os_obra_social.os_nombre ASC
+        "));
+
+        } else {
+            $res = DB::select( DB::raw("
+            SELECT mat_matricula.id, mat_matricula_psicologo_nacional, mat_matricula_psicologo,
+       CONCAT(mat_apellido,' ',mat_nombre) AS mat_nombreyapellido,mat_apellido, mat_nombre, mat_sexo,mat_matricula.mat_tipo_dni,  mat_matricula.mat_especialidad,
+       mat_matricula.mat_orientacion, mat_matricula.mat_abordaje, mat_domicilio_laboral,mat_tel_laboral,
+       mat_domicilio_particular, mat_tel_particular, mat_cuit, mat_ning_bto, mat_domicilio_particular, mat_tel_particular, mat_fecha_egreso, mat_fecha_matricula,
+        mat_matricula_obra_social.id as mat_matricula_obra_social_id,
+        mat_matricula_obra_social.obra_social_id,  os_obra_social.os_nombre  as obra_social_nombre
+        FROM mat_matricula, mat_matricula_obra_social, os_obra_social
+        WHERE mat_matricula.id = mat_matricula_obra_social.matricula_id AND os_obra_social.id = mat_matricula_obra_social.obra_social_id
+        AND mat_matricula.mat_estado_matricula = 'A' AND os_obra_social.os_nombre   LIKE '".$obra_social."%'
+        ORDER BY  os_obra_social.os_nombre ASC
+        "));
+        }
+
     return response()->json($res, 201);
 
     }
