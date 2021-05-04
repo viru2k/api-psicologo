@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Afip;
 use Afip;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB; 
+use Illuminate\Support\Facades\DB;
 
 class AfipController extends Controller
 {
        var  $produccion = FALSE;
-    
+
     public function testAfipGetLastVoucher(){
         $medico = DB::select( DB::raw("SELECT cuit, factura_key, factura_crt FROM medicos WHERE id = 24"));
         $afip = new Afip(array(
@@ -20,7 +20,7 @@ class AfipController extends Controller
         $last_voucher = $afip->ElectronicBilling->GetLastVoucher(1,4);
         var_dump( $last_voucher);
     }
-    
+
     public function testAfip(){
         $medico = DB::select( DB::raw("SELECT cuit, factura_key, factura_crt FROM medicos WHERE id = 24"));
         $afip = new Afip(array('CUIT' => (float)$medico[0]->cuit,
@@ -66,8 +66,8 @@ class AfipController extends Controller
     public function CrearFacturaA(Request $request){
 
         /**
-         * 
-         *  SI ES 2 = Servicios  3 = Productos y Servicios DEBE TENER FECHA DESDE Y HASTA 
+         *
+         *  SI ES 2 = Servicios  3 = Productos y Servicios DEBE TENER FECHA DESDE Y HASTA
          */
 
         $medico = DB::select( DB::raw("SELECT cuit, factura_key, factura_crt FROM medicos WHERE id = ".$request->input('medico_id').""));
@@ -191,7 +191,7 @@ class AfipController extends Controller
 
     public function CrearFacturaB(Request $request){
         $medico = DB::select( DB::raw("SELECT cuit, factura_key, factura_crt FROM medicos WHERE id = ".$request->input('id').""));
-        $afip = new Afip(array( 
+        $afip = new Afip(array(
         'CUIT' => (float)$medico[0]->cuit,
         'production' => $this->produccion,
         'cert'         => $medico[0]->factura_crt,
@@ -202,17 +202,17 @@ class AfipController extends Controller
          * Número de la ultima Factura B
          **/
         $last_voucher = $afip->ElectronicBilling->GetLastVoucher(1,6);
-        
+
         /**
          * Numero del punto de venta
          **/
         $punto_de_venta = 1;
-        
+
         /**
          * Tipo de factura
          **/
         $tipo_de_factura = 6; // 6 = Factura B
-        
+
         /**
          * Concepto de la factura
          *
@@ -223,7 +223,7 @@ class AfipController extends Controller
          * 3 = Productos y Servicios
          **/
         $concepto = 1;
-        
+
         /**
          * Tipo de documento del comprador
          *
@@ -235,38 +235,38 @@ class AfipController extends Controller
          * 99 = Consumidor Final
          **/
         $tipo_de_documento = 99;
-        
+
         /**
          * Numero de documento del comprador (0 para consumidor final)
          **/
         $numero_de_documento = 0;
-        
+
         /**
          * Numero de factura
          **/
         $numero_de_factura = $last_voucher+1;
-        
+
         /**
          * Fecha de la factura en formato aaaa-mm-dd (hasta 10 dias antes y 10 dias despues)
          **/
         $fecha = date('Y-m-d');
-        
+
         /**
          * Importe sujeto al IVA (sin icluir IVA)
          **/
         $importe_gravado = 100;
-        
+
         /**
          * Importe exento al IVA
          **/
         $importe_exento_iva = 0;
-        
+
         /**
          * Importe de IVA
          **/
         $importe_iva = 21;
-        
-        
+
+
         $data = array(
                 'CantReg'       => 1, // Cantidad de facturas a registrar
                 'PtoVta'        => $punto_de_venta,
@@ -293,12 +293,12 @@ class AfipController extends Controller
                         )
                 ),
         );
-        
+
         /**
          * Creamos la Factura
          **/
         $res = $afip->ElectronicBilling->CreateVoucher($data);
-        
+
         /**
          * Mostramos por pantalla los datos de la nueva Factura
          **/
@@ -327,12 +327,12 @@ class AfipController extends Controller
          * Numero del punto de venta
          **/
         $punto_de_venta = $medico[0]->punto_vta;
-        
+
         /**
          * Tipo de factura
          **/
         $tipo_de_comprobante = 11; // 11 = Factura C
-        
+
         /**
          * Concepto de la factura
          *
@@ -343,7 +343,7 @@ class AfipController extends Controller
          * 3 = Productos y Servicios
          **/
         $concepto = 3;
-        
+
         /**
          * Tipo de documento del comprador
          *
@@ -355,17 +355,17 @@ class AfipController extends Controller
          * 99 = Consumidor Final
          **/
         $tipo_de_documento = 80;
-        
+
         /**
          * Numero de documento del comprador (0 para consumidor final)
          **/
         $numero_de_documento = 33693450239;
-        
+
         /**
          * Numero de comprobante
          **/
         $numero_de_factura = $last_voucher+1;
-        
+
         /**
          * Fecha de la factura en formato aaaa-mm-dd (hasta 10 dias antes y 10 dias despues)
          **/
@@ -377,8 +377,8 @@ class AfipController extends Controller
          * Importe de la Factura
          **/
         $importe_total = 100;
-        
-        
+
+
         $data = array(
             'FchServDesde'  => $FchServDesde,//Fecha de inicio de servicio (formato aaaammdd)
             'FchServHasta'  => $FchServHasta,//Fecha de fin de servicio (formato aaaammdd)
@@ -401,12 +401,12 @@ class AfipController extends Controller
                 'MonId'         => 'PES', //Tipo de moneda usada en la factura ('PES' = pesos argentinos)
                 'MonCotiz'      => 1, // Cotización de la moneda usada (1 para pesos argentinos)
         );
-        
+
         /**
          * Creamos la Factura
          **/
         $res = $afip->ElectronicBilling->CreateVoucher($data);
-        
+
         /**
          * Mostramos por pantalla los datos de la nueva Factura
          **/
@@ -554,7 +554,7 @@ class AfipController extends Controller
                     'vencimiento' => $res['CAEFchVto'] //Fecha de vencimiento del CAE
             ));
     }
-    
+
     public function CrearNotaCreditoB(Request $request){
 
         $medico = DB::select( DB::raw("SELECT cuit, factura_key, factura_crt FROM medicos WHERE id = ".$request->input('id').""));
@@ -562,7 +562,7 @@ class AfipController extends Controller
                 'CUIT' => (float)$medico[0]->cuit,
                 'production' => $this->produccion,
                 'cert'         => $medico[0]->factura_crt,
-                'key'          => $medico[0]->factura_key        
+                'key'          => $medico[0]->factura_key
         ));
         $last_voucher = $afip->ElectronicBilling->GetLastVoucher(1,8);
 
@@ -696,9 +696,9 @@ class AfipController extends Controller
 
 
         public function getMedicosFacturan(){
-                $medico = DB::select( DB::raw("SELECT medicos.id,CONCAT(apellido,' ',nombre) AS nombreyapellido , domicilio, fecha_matricula, cuit, ing_brutos, usuario_id, factura_key, factura_crt, 
-                categoria_iva.categoria_iva, factura_documento_comprador.id  AS factura_documento_comprador_id, factura_documento_comprador.descripcion, factura_punto_vta.id AS  factura_punto_vta_id, 
-                factura_punto_vta.punto_vta , factura_comprobante.id AS factura_comprobante_id, factura_comprobante.es_afip,  factura_comprobante.descripcion AS factura_comprobante_descripcion 
+                $medico = DB::select( DB::raw("SELECT medicos.id,CONCAT(apellido,' ',nombre) AS nombreyapellido , domicilio, fecha_matricula, cuit, ing_brutos, usuario_id, factura_key, factura_crt,
+                categoria_iva.categoria_iva, factura_documento_comprador.id  AS factura_documento_comprador_id, factura_documento_comprador.descripcion, factura_punto_vta.id AS  factura_punto_vta_id,
+                factura_punto_vta.punto_vta , factura_comprobante.id AS factura_comprobante_id, factura_comprobante.es_afip,  factura_comprobante.descripcion AS factura_comprobante_descripcion
                 FROM medicos, categoria_iva, factura_documento_comprador, factura_punto_vta, factura_comprobante WHERE medicos.punto_vta_id = factura_punto_vta.id AND factura_documento_comprador.id = medicos.factura_documento_comprador_id AND  medicos.factura_comprobante_id = factura_comprobante.id AND   cuit != '' AND factura_key != '' AND factura_crt !='' AND medicos.categoria_iva_id = categoria_iva.id ORDER BY nombreyapellido ASC"));
                 return $medico;
         }
@@ -706,12 +706,10 @@ class AfipController extends Controller
 
         public function getDatoMedico(Request $request){
                 $medico_id = $request->input('medico_id');
-                
-                $medico = DB::select( DB::raw("SELECT medicos.id,CONCAT(apellido,' ',nombre) AS nombreyapellido , domicilio, fecha_matricula, cuit, ing_brutos, usuario_id, factura_key, factura_crt, 
-                categoria_iva.categoria_iva, factura_documento_comprador.id  AS factura_documento_comprador_id, factura_documento_comprador.descripcion, factura_punto_vta.id AS  factura_punto_vta_id, 
-                factura_punto_vta.punto_vta , factura_punto_vta.punto_vta, factura_comprobante.id AS factura_comprobante_id,  factura_comprobante.es_afip, factura_comprobante.letra, 
-                factura_comprobante.comprobante_codigo, factura_comprobante.descripcion AS factura_comprobante_descripcion , es_afip
-                FROM medicos, categoria_iva, factura_documento_comprador, factura_punto_vta, factura_comprobante WHERE medicos.punto_vta_id = factura_punto_vta.id AND factura_documento_comprador.id = medicos.factura_documento_comprador_id AND  medicos.factura_comprobante_id = factura_comprobante.id AND   cuit != '' AND factura_key != '' AND factura_crt !='' AND medicos.categoria_iva_id = categoria_iva.id AND medicos.id = ".$medico_id." ORDER BY nombreyapellido ASC"));
+
+                $medico = DB::select( DB::raw("SELECT
+                users.id, name, nombreyapellido, factura_punto_vta.punto_vta ,factura_punto_vta.id as pto_vta_id
+                FROM users, factura_punto_vta WHERE users.pto_vta_id = factura_punto_vta.id AND users.id = ".$medico_id));
                 return $medico;
         }
 

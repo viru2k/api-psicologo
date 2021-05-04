@@ -15,7 +15,8 @@ class MatriculaController extends ApiController
   public function getMatriculas()
   {
     $res = DB::select( DB::raw("SELECT id, mat_matricula_psicologo_nacional, mat_matricula_psicologo, mat_apellido, mat_nombre, mat_sexo, mat_localidad, mat_domicilio_particular,
-     mat_domicilio_laboral, mat_tel_particular, mat_tel_laboral, mat_lugar_laboral, mat_email, mat_tipo_dni, mat_dni, mat_num_cuenta, mat_banco_nombre, mat_sucursal, mat_fecha_nacimiento, mat_fecha_egreso, mat_fecha_matricula,
+     mat_domicilio_laboral, mat_tel_particular, mat_tel_laboral, mat_lugar_laboral, mat_email, mat_tipo_dni, mat_dni, mat_num_cuenta, mat_banco_nombre, mat_sucursal,
+     mat_fecha_nacimiento, mat_fecha_egreso, mat_fecha_matricula, mat_fecha_pasivo,
      mat_estado_matricula, mat_especialidad, mat_orientacion, mat_abordaje, mat_excento, mat_cuit, mat_ning_bto, mat_banco, mat_cbu, mat_nro_folio,
      mat_nro_acta, mat_fallecido, mat_historial, mat_numero_superintendecia,
     mat_n_superintendencia_fecha_vencimiento FROM mat_matricula WHERE 1
@@ -28,7 +29,8 @@ class MatriculaController extends ApiController
   {
     $matricula_id =  $request->input('matricula_id');
     $res = DB::select( DB::raw("SELECT id, mat_matricula_psicologo_nacional, mat_matricula_psicologo, mat_apellido, mat_nombre, mat_sexo, mat_localidad, mat_domicilio_particular,
-    mat_domicilio_laboral, mat_tel_particular, mat_tel_laboral, mat_lugar_laboral, mat_email, mat_tipo_dni, mat_dni, mat_num_cuenta, mat_banco_nombre, mat_sucursal,  mat_fecha_nacimiento, mat_fecha_egreso, mat_fecha_matricula,
+    mat_domicilio_laboral, mat_tel_particular, mat_tel_laboral, mat_lugar_laboral, mat_email, mat_tipo_dni, mat_dni, mat_num_cuenta, mat_banco_nombre, mat_sucursal,
+     mat_fecha_nacimiento, mat_fecha_egreso, mat_fecha_matricula, mat_fecha_pasivo,
     mat_estado_matricula, mat_especialidad, mat_orientacion, mat_abordaje, mat_excento, mat_cuit, mat_ning_bto, mat_banco, mat_cbu, mat_nro_folio,
     mat_nro_acta, mat_fallecido, mat_historial, mat_numero_superintendecia, mat_n_superintendencia_fecha_vencimiento
     FROM mat_matricula WHERE  mat_matricula.mat_matricula_psicologo = :matricula_id
@@ -71,6 +73,9 @@ class MatriculaController extends ApiController
     $tmp_fecha = str_replace('/', '-', $request->mat_fecha_matricula);
     $mat_fecha_matricula =  date('Y-m-d', strtotime($tmp_fecha));
 
+    $tmp_fecha = str_replace('/', '-', $request->mat_fecha_pasivo);
+    $mat_fecha_pasivo =  date('Y-m-d', strtotime($tmp_fecha));
+
     $tmp_fecha = str_replace('/', '-', $request->mat_n_superintendencia_fecha_vencimiento);
     $mat_n_superintendencia_fecha_vencimiento =  date('Y-m-d', strtotime($tmp_fecha));
 
@@ -96,6 +101,7 @@ class MatriculaController extends ApiController
       'mat_fecha_nacimiento' => $mat_fecha_nacimiento,
       'mat_fecha_egreso' => $mat_fecha_egreso,
       'mat_fecha_matricula' => $mat_fecha_matricula,
+      'mat_fecha_pasivo' => $mat_fecha_pasivo,
       'mat_estado_matricula' => $request->mat_estado_matricula,
       'mat_especialidad' => $request->mat_especialidad,
       'mat_orientacion' => $request->mat_orientacion,
@@ -124,6 +130,8 @@ class MatriculaController extends ApiController
     $mat_fecha_egreso =  date('Y-m-d', strtotime($tmp_fecha));
     $tmp_fecha = str_replace('/', '-', $request->input('mat_fecha_matricula'));
     $mat_fecha_matricula =  date('Y-m-d', strtotime($tmp_fecha));
+    $tmp_fecha = str_replace('/', '-', $request->input('mat_fecha_pasivo'));
+    $mat_fecha_pasivo =  date('Y-m-d', strtotime($tmp_fecha));
     $tmp_fecha = str_replace('/', '-', $request->input('mat_n_superintendencia_fecha_vencimiento'));
     $mat_n_superintendencia_fecha_vencimiento =  date('Y-m-d', strtotime($tmp_fecha));
 
@@ -151,6 +159,7 @@ class MatriculaController extends ApiController
       'mat_fecha_nacimiento' => $mat_fecha_nacimiento,
       'mat_fecha_egreso' => $mat_fecha_egreso,
       'mat_fecha_matricula' => $mat_fecha_matricula,
+      'mat_fecha_pasivo' => $mat_fecha_pasivo,
       'mat_estado_matricula' => $request->input('mat_estado_matricula'),
       'mat_especialidad' => $request->input('mat_especialidad'),
       'mat_orientacion' => $request->input('mat_orientacion'),
@@ -214,7 +223,8 @@ public function getPadronObraSocial(Request $request)
   $res = DB::select( DB::raw("SELECT mat_matricula.id, mat_matricula_psicologo_nacional, mat_matricula_psicologo,
    CONCAT(mat_apellido,' ',mat_nombre) AS mat_nombreyapellido,mat_apellido, mat_nombre, mat_sexo,mat_matricula.mat_tipo_dni,  mat_matricula.mat_especialidad,
    mat_matricula.mat_orientacion, mat_matricula.mat_abordaje, mat_domicilio_laboral,mat_tel_laboral,
-   mat_domicilio_particular, mat_tel_particular, mat_cuit, mat_ning_bto, mat_domicilio_particular, mat_tel_particular, mat_fecha_egreso, mat_fecha_matricula,
+   mat_domicilio_particular, mat_tel_particular, mat_cuit, mat_ning_bto, mat_domicilio_particular, mat_tel_particular,
+    mat_fecha_egreso, mat_fecha_matricula, mat_fecha_pasivo,
     mat_matricula_obra_social.id as mat_matricula_obra_social_id,
     mat_matricula_obra_social.obra_social_id,  os_obra_social.os_nombre  as obra_social_nombre
     FROM mat_matricula, mat_matricula_obra_social, os_obra_social
