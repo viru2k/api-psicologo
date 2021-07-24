@@ -394,7 +394,7 @@ private function calcularDeudaMatricula(){
 
    if ($this->tieneSaldo($_saldo_restante,$_deuda->mat_monto)) {
 
-     if($_deuda->id_concepto === 1) {
+     if(($_deuda->id_concepto === 1) || ($_deuda->id_concepto === 10)) { // FASE DE PRUEBA
         //CALCULO LOS INTERESES SI ESTA VENCIDA
         if($this->diferenciaFecha($_deuda->mat_fecha_vencimiento, date('Y-m-d')) <3){
           $this->TOTAL_os_desc_matricula =  $this->TOTAL_os_desc_matricula + $_deuda->mat_monto;
@@ -414,7 +414,7 @@ private function calcularDeudaMatricula(){
      if($_deuda->id_concepto === 2) {
       $this->TOTAL_os_desc_fondo_sol =  $this->TOTAL_os_desc_fondo_sol + $_deuda->mat_monto;
      }
-     if(($_deuda->id_concepto !== 1) && ($_deuda->id_concepto !== 2)) {
+     if(($_deuda->id_concepto !== 1) && ($_deuda->id_concepto !== 2) && ($_deuda->id_concepto !== 10)) { // FASE DE PRUEBA
       $this->TOTAL_os_otros_ing_eg = $this->TOTAL_os_otros_ing_eg + $_deuda->mat_monto;
      }
 
@@ -588,6 +588,27 @@ public function getOrdenByMatriculaAndLiquidacion(Request $request)
       return response()->json($res, "200");
 }
 
+
+
+public function getLiquidacionOrdenByExpediente(Request $request)
+{
+;
+  $id_os_liquidacion = $request->input('id_os_liquidacion');
+  
+
+  $res = DB::select( DB::raw("SELECT os_obra_social.id as id_obra_social, id_os_liq_orden, mat_matricula,CONCAT(mat_matricula.mat_apellido, ' ',mat_matricula.mat_nombre ) AS mat_apellido_nombre, os_liq_orden.id_sesion,
+ os_fecha, os_cantidad, os_precio_sesion, os_precio_total, os_estado_liquidacion, os_liq_orden.os_liq_numero, os_sesion_tipo.os_sesion, os_sesion_tipo.os_sesion_codigo, pac_paciente.id_paciente,
+ pac_paciente.pac_nombre, pac_paciente.pac_dni, pac_paciente.pac_sexo, pac_paciente.nro_afiliado, os_obra_social.os_nombre,
+ mat_cuit, mat_ning_bto, mat_domicilio_particular
+ FROM os_liq_orden, mat_matricula, os_obra_social, os_sesion, os_sesion_tipo, pac_paciente, os_liq_liquidacion
+ WHERE os_liq_orden.mat_matricula = mat_matricula.mat_matricula_psicologo
+ AND os_liq_orden.id_obra_social = os_obra_social.id AND os_liq_orden.id_sesion = os_sesion.id_sesion
+ AND os_liq_liquidacion.id_os_liquidacion = os_liq_orden.os_liq_numero
+ AND os_sesion.id_sesion_tipo = os_sesion_tipo.id_sesion_tipo AND os_liq_orden.id_paciente = pac_paciente.id_paciente
+ AND  os_liq_liquidacion.id_os_liquidacion = ".$id_os_liquidacion." ORDER BY id_os_liquidacion DESC
+  "));
+      return response()->json($res, "200");
+}
 
 
   public function getLiquidacionByMatriculaAndEstado(Request $request)
@@ -1173,5 +1194,57 @@ public function putActualizarNroRecibo(Request $request) {
 
     $i++;
    }
+}
+
+
+
+
+public function putLiquidacion(Request $request,$id) { 
+ 
+
+  $tmp_fecha = str_replace('/', '-', $request->input('os_fecha_desde'));
+  $os_fecha_desde =  date('Y-m-d', strtotime($tmp_fecha));
+  $tmp_fecha = str_replace('/', '-',$request->input('os_fecha_hasta'));
+  $os_fecha_hasta =  date('Y-m-d', strtotime($tmp_fecha));
+
+  $res =  DB::table('os_liq_liquidacion')
+  ->where('id_os_liquidacion', $request["id_os_liquidacion"])
+  ->update([
+      'id_os_obra_social' => $request->input('id_os_obra_social'),
+      'os_liq_numero' => $request->input('os_liq_numero'),
+      'os_fecha_desde' => $os_fecha_desde,
+      'os_fecha_hasta' => $os_fecha_hasta,
+      'os_cant_ordenes' => $request->input('os_cant_ordenes'),
+      'os_monto_total' => $request->input('os_monto_total'),
+      'os_estado' => $request->input('os_estado'), 
+      'id_liquidacion' => $request->input('id_liquidacion')
+  ]);
+
+  return response()->json($res, "200");
+}
+
+
+public function putActualizarValoresExpediente(Request $request) { 
+  echo  $request->input('id_os_liquidacion');
+/* 
+  $tmp_fecha = str_replace('/', '-', $request->input('os_fecha_desde'));
+  $os_fecha_desde =  date('Y-m-d', strtotime($tmp_fecha));
+  $tmp_fecha = str_replace('/', '-',$request->input('os_fecha_hasta'));
+  $os_fecha_hasta =  date('Y-m-d', strtotime($tmp_fecha));
+
+  $res =  DB::table('os_liq_liquidacion')
+  ->where('id_os_liquidacion', $request["id_os_liquidacion"])
+  ->update([
+      'id_os_obra_social' => $request->input('id_os_obra_social'),
+      'os_liq_numero' => $request->input('os_liq_numero'),
+      'os_fecha_desde' => $os_fecha_desde,
+      'os_fecha_hasta' => $os_fecha_hasta,
+      'os_cant_ordenes' => $request->input('os_cant_ordenes'),
+      'os_monto_total' => $request->input('os_monto_total'),
+      'os_estado' => $request->input('os_estado'), 
+      'id_liquidacion' => $request->input('id_liquidacion')
+  ]); */
+
+ // return response()->json($res, "200");
 }
 }
