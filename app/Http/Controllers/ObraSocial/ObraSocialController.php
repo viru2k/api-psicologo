@@ -82,7 +82,7 @@ class ObraSocialController extends ApiController
     {
 
         $res = DB::select( DB::raw("SELECT os_obra_social.id , os_nombre, es_habilitada, os_sesion.id_sesion, os_sesion.id_precio,
-        os_sesion.os_sesion_mes, os_sesion.os_sesion_anual, os_sesion_tipo.os_sesion, os_sesion_tipo.os_sesion_codigo, os_sesion.id_sesion_tipo
+        os_sesion.os_sesion_mes, os_sesion.os_sesion_anual, os_sesion_tipo.os_sesion, os_sesion_tipo.os_sesion_codigo, os_sesion.id_sesion_tipo, os_obra_social.id as obra_social_id
         FROM `os_obra_social`, os_sesion, os_sesion_tipo
         WHERE os_sesion.id_obra_social = os_obra_social.id AND os_sesion.id_sesion_tipo = os_sesion_tipo.id_sesion_tipo
         AND os_obra_social.es_habilitada = 'S' ORDER BY os_sesion.id_sesion DESC
@@ -96,8 +96,8 @@ class ObraSocialController extends ApiController
     public function setConvenio(Request $request)
     {
       $id =    DB::table('os_sesion')->insertGetId([
-        'id_obra_social' => $request->id_obra_social,
-        'id_sesion_tipo' => $request->id_sesion_tipo,
+        'id_obra_social' => $request['os_nombre']['id'],
+        'id_sesion_tipo' => $request['os_sesion']['id_sesion_tipo'],
         'id_precio' => $request->id_precio,
         'os_sesion_mes' => $request->os_sesion_mes,
         'os_sesion_anual' => $request->os_sesion_anual
@@ -108,14 +108,54 @@ class ObraSocialController extends ApiController
 
     public function putConvenio(Request $request, $id)
     {
-      $res =  DB::table('os_sesion')
+    //  echo $request['os_nombre']['os_nombre'];
+       $res =  DB::table('os_sesion')
       ->where('id_sesion', $id)
       ->update([
-        'id_obra_social' => $request->input('id'),
-        'id_sesion_tipo' => $request->input('id_sesion_tipo'),
+        'id_obra_social' => $request['os_nombre']['id'],
+        'id_sesion_tipo' => $request['os_sesion']['id_sesion_tipo'],
         'id_precio' => $request->input('id_precio'),
         'os_sesion_mes' => $request->input('os_sesion_mes'),
         'os_sesion_anual' => $request->input('os_sesion_anual')
+        ]);
+
+        return response()->json($res, "200"); 
+    }
+
+
+
+    
+
+    public function getSesionTipo(Request $request)
+    {
+
+      $res = DB::select( DB::raw("SELECT id_sesion_tipo, os_sesion, os_sesion_codigo FROM os_sesion_tipo
+      "));
+          
+
+          return response()->json($res, "200");
+    }
+
+
+
+    public function setSesionTipo(Request $request)
+    {
+      $id =    DB::table('os_sesion_tipo')->insertGetId([
+        'id_sesion_tipo' => $request->id_sesion_tipo,
+        'os_sesion' => $request->os_sesion,
+        'os_sesion_codigo' => $request->os_sesion_codigo
+    ]);
+      return response()->json($id, "200");
+    }
+
+
+    public function putSesionTipo(Request $request, $id)
+    {
+      $res =  DB::table('os_sesion_tipo')
+      ->where('id_sesion_tipo', $id)
+      ->update([
+        'os_sesion' => $request->input('os_sesion'),
+        'os_sesion_codigo' => $request->input('os_sesion_codigo')
         ]);
 
         return response()->json($res, "200");

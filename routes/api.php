@@ -77,6 +77,9 @@ Route::name('obra-social')->get('obra/social/convenio/habilitada', 'ObraSocial\O
 Route::name('obra-social')->get('convenio/habilitada', 'ObraSocial\ObraSocialController@getConvenioHabilitado');
 Route::name('convenio')->put('convenio/{id}',  'ObraSocial\ObraSocialController@putConvenio');
 Route::name('convenio')->post('convenio', 'ObraSocial\ObraSocialController@setConvenio');
+Route::name('sesion-tipo')->get('sesion/tipo', 'ObraSocial\ObraSocialController@getSesionTipo');
+Route::name('sesion-tipo')->put('sesion/{id}',  'ObraSocial\ObraSocialController@putSesionTipo');
+Route::name('sesion-tipo')->post('sesion', 'ObraSocial\ObraSocialController@setSesionTipo');
 });
 
 

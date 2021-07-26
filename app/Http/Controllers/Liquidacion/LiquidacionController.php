@@ -1225,7 +1225,16 @@ public function putLiquidacion(Request $request,$id) {
 
 
 public function putActualizarValoresExpediente(Request $request) { 
-  echo  $request->input('id_os_liquidacion');
+ // echo  $request->input('id_os_liquidacion');
+
+  $id_os_liquidacion = $request->input('id_os_liquidacion');
+
+  $res = DB::select( DB::raw("SELECT * FROM os_liq_orden, os_sesion, os_liq_liquidacion WHERE os_liq_orden.id_sesion = os_sesion.id_sesion AND os_liq_orden.os_liq_numero = os_liq_liquidacion.id_os_liquidacion AND os_liq_liquidacion.id_os_liquidacion = :id_os_liquidacion
+  "), array(
+       'id_os_liquidacion' =>$id_os_liquidacion
+     ));
+
+
 /* 
   $tmp_fecha = str_replace('/', '-', $request->input('os_fecha_desde'));
   $os_fecha_desde =  date('Y-m-d', strtotime($tmp_fecha));
@@ -1245,6 +1254,6 @@ public function putActualizarValoresExpediente(Request $request) {
       'id_liquidacion' => $request->input('id_liquidacion')
   ]); */
 
- // return response()->json($res, "200");
+  return response()->json($res, "200");
 }
 }
