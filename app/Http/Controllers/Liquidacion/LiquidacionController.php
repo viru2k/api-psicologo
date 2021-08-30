@@ -121,14 +121,8 @@ public function liquidar(Request $request)
   //$matriculados = $this->obtenerMatriculas(); POR AHORA NO ES NECESARIO
   $this->liquidacionDetalle = $this->obtenerLiquidacionDetalle($id_liquidacion_generada); // DEBE VENIR DEL REQUEST
   $this->concepto = $this->obtenerConcepto();
-  $this->percepcion = $this->obtenerPercepcion();
-    echo $id_liquidacion_generada;
+  $this->percepcion = $this->obtenerPercepcion();  
   $_registros = count($this->liquidacionDetalle);
-
-   //
-
-/* --------------- echo $matriculados[0]->mat_nombre_apellido; -------------- */
-/* ------------------------ var_dump($matriculados); ------------------------ */
 
 
     foreach ($this->liquidacionDetalle as $index => $_liquidacionDetalle) {
@@ -300,19 +294,28 @@ private function limpiarDatos() {
 
 
 
-  private function obtenerDeudaMatricula($mat_matricula) {
-
+  private function obtenerDeudaMatricula($mat_matricula, $fecha_liquidacion) {
+    // !!! pasar fecha de matricula hasta para realizar el filtro del limite de matricula
+    // primero matricula y fondo  actual
+    // matricula bonificada 
+    // plan de pago con limite  actual con limite 1 la mas vieja
+    // todo tipo de deudas hasta que de 0 
+    //  CURDATE DEBE SER MENOR A LA FECHA DE LIQUIDACION.
+    //  
    // echo $mat_matricula;
-    $res = DB::select( DB::raw("(SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 1 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND ((`mat_fecha_vencimiento`) <=curdate())   ORDER BY mat_pago_historico.mat_fecha_vencimiento DESC LIMIT 1)
+    $res = DB::select( DB::raw("(SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto  IN(1,10) AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND ((`mat_fecha_vencimiento`) <=curdate())   ORDER BY mat_pago_historico.mat_fecha_vencimiento DESC LIMIT 2)
     UNION
-    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 1 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula =".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND ((`mat_fecha_vencimiento`) <=curdate())   ORDER BY mat_pago_historico.mat_fecha_vencimiento ASC LIMIT 1)
+    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto IN(1,10) AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula =".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND ((`mat_fecha_vencimiento`) <=curdate())   ORDER BY mat_pago_historico.mat_fecha_vencimiento ASC LIMIT 1)
     UNION
-    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 2 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND ((`mat_fecha_vencimiento`) <=curdate())   ORDER BY mat_pago_historico.mat_fecha_vencimiento DESC LIMIT 1)
+    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 2 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND ((`mat_fecha_vencimiento`) <=curdate())   ORDER BY mat_pago_historico.mat_fecha_vencimiento DESC LIMIT 2)
     UNION
     (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 2 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula = ".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND ((`mat_fecha_vencimiento`) <=curdate())    ORDER BY mat_pago_historico.mat_fecha_vencimiento ASC LIMIT 1)
     UNION
-    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto != 2 AND mat_pago_historico.id_concepto != 1 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula =".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND ((`mat_fecha_vencimiento`) <=curdate())    ORDER BY mat_pago_historico.mat_fecha_vencimiento DESC LIMIT 1)
-    "));
+    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto = 11  AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula =".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND ((`mat_fecha_vencimiento`) <=curdate())    ORDER BY mat_pago_historico.mat_fecha_vencimiento ASC  LIMIT 1 )
+    UNION
+    (SELECT id_pago_historico, mat_matricula, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_num_cuota, mat_pago_historico.mat_descripcion, mat_id_plan, mat_pago_historico.id_concepto, mat_estado, mat_concepto.mat_concepto, mat_interes FROM mat_pago_historico, mat_concepto WHERE mat_pago_historico.id_concepto NOT IN (1,2,11) AND mat_pago_historico.id_concepto != 1 AND mat_pago_historico.mat_estado = 'A' AND mat_pago_historico.mat_matricula =".$mat_matricula." AND mat_concepto.id_concepto = mat_pago_historico.id_concepto AND ((`mat_fecha_vencimiento`) <=curdate())    ORDER BY mat_pago_historico.mat_fecha_vencimiento ASC )
+    ")
+    );
 
     return $res;
   }
@@ -1157,21 +1160,15 @@ public function putLiquidacionDetalle(Request $request, $id){
     $proximo_numero = $request->input('proximo_numero');
     $i = 0;
    while(isset($request[$i])){
-
-    $estado = DB::update( DB::raw("UPDATE os_liq_liquidacion_detalle
+    if($request[$i]["os_liq_bruto"] >= 1500){
+       $estado = DB::update( DB::raw("UPDATE os_liq_liquidacion_detalle
     SET os_num_ing_bruto = '".$proximo_numero."'
     WHERE id_liquidacion_detalle = '".$request[$i]["id_liquidacion_detalle"]."'
     AND os_liq_bruto >= 1500
  "));
-   /*  $res =  DB::table('os_liq_liquidacion_detalle')
-    ->where('id_liquidacion_detalle', $request[$i]["id_liquidacion_detalle"])
-    ->where('os_liq_bruto', '>=', 1500)
-    ->update([
-
-        'os_num_ing_bruto' => $proximo_numero
-    ]); */
-    $proximo_numero++;
-
+ $proximo_numero++;
+    }
+   
     $i++;
    }
 }

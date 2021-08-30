@@ -57,14 +57,11 @@ class UploadController extends Controller
                     
          
         $parts = explode('/', $request->url());
-       //  var_dump($parts);
+       
          $mat_matricula =  $parts[8];
          $liq_liquidacion_detalle_id =  $parts[9];
-         $id_liquidacion =  $parts[10];
-       //  echo $mat_matricula;
-       $files = $request->file('images');
-     
-       
+         $id_liquidacion =  $parts[10];       
+         $files = $request->file('images');
          $fecha = date("Y-m-d-H-i-s");
          $allowedfileExtension=['pdf','jpg','png','docx','pdf'];
          $files = $request->file('images');
@@ -175,4 +172,58 @@ class UploadController extends Controller
     public function getLocalStoragePath(){
    // echo Storage::disk('local')->url($fileName);
 }
+
+
+
+
+/******************************************************************************************** */
+// ARCHIVOS DE NOTIFICACIONES
+
+
+public function showUploadFileNoticias(Request $request) {
+
+                    var_dump($request);
+         
+    $parts = explode('/', $request->url());
+   //  var_dump($parts);
+     $tipo_documento =  $parts[8];
+     $tipo_privacidad =  $parts[9];     
+   //  echo $mat_matricula;
+   $files = $request->file('images');
+ 
+   
+     $fecha = date("Y-m-d-H-i-s");
+     $allowedfileExtension=['docx','pdf','PDF', 'doc','MP4','mp4','jpg','JPG','PNG','png','jpeg','JPEG','avi', 'AVI'];
+     $files = $request->file('images');
+     foreach($files as $file){
+     $filename = $file->getClientOriginalName();
+ 
+     $extension = $file->getClientOriginalExtension();
+ 
+     $check=in_array($extension,$allowedfileExtension);
+     $parts = explode('/', $request->url());    
+      $last = end($parts);
+  
+     $destinationPath = 'uploads/'.$tipo_documento.$last.'-'.$fecha;
+     $without_extension = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+     
+
+/* 
+
+
+        $file->move($destinationPath,$filename);
+
+        $id =    DB::table('factura_liquidacion')->insertGetId([              
+            'mat_matricula' => $mat_matricula, 
+            'liq_liquidacion_detalle_id' => $liq_liquidacion_detalle_id, 
+            'id_liquidacion' => $id_liquidacion, 
+             'url' => $destinationPath.'/'.$filename,
+             'fecha_subida' => date("Y-m-d H:i:s")                 
+        ]);     */    
+
+        } 
+
+    return response()->json("Upload Successfully ", 201); 
+ }
+
 }

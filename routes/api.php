@@ -247,19 +247,21 @@ Route::name('psicologo')->get('informacion/privada', 'Padron\LandingController@g
 Route::name('psicologo')->get('informacion/privada/facturacion/by/matricula', 'Padron\PadronController@getFacturaByMatricula');
 Route::name('psicologo')->get('informacion/privada/facturacion/by/idliquidacion', 'Padron\PadronController@getFacturaByLiquidacion');
 Route::name('psicologo')->get('liquidacion/liquidacion/generada', 'Padron\PadronController@getLiquidacionGenerada');
-Route::name('psicologo')->get('liquidacion/liquidacion/generada', 'Padron\PadronController@getLiquidacionGenerada');
 
 
 
 /** FILE MANAGER **/
 Route::name('archivos')->post('/multiuploads/estudios/{mat_matricula}/{id_liquidacion_detalle}/{id_liquidacion}', 'Upload\UploadController@showUploadFile');
+Route::name('archivos')->post('/multiuploads/estudios/{tipo_privacidad}', 'Upload\UploadController@showUploadFileNoticias');
 Route::name('archivos')->post('/multiuploads/estudios/datos', 'Upload\UploadController@showUploadFileDatos');
 Route::name('archivos')->post('/multiuploads/texto', 'Files\FilesController@createTestTextFile');
 Route::name('archivos')->post('/multiuploads/texto/cirugia', 'Files\FilesController@createTestTextFileCirugia');
 Route::name('archivos')->get('/multiuploads/estudios/verimagen', 'Upload\UploadController@getEstudioImagenes');
 Route::name('archivos')->get('/files/rentas/by/liquidacion', 'Files\FilesController@createTextFileRentas');
 Route::name('archivos')->post('files/dos/by/excel', 'Files\FilesController@createTextFileDos');
-
+/** GESTOR DE NOTICIAS  */
+Route::name('turnos-gestion')->get('multimedia/ordenado', 'Multimedia\MultimediaController@getMultimedia');
+Route::name('multimedia')->delete('multimedia/{id}', 'Multimedia\MultimediaController@delMultimedia');
 
 
 /* -------------------------------------------------------------------------- */
