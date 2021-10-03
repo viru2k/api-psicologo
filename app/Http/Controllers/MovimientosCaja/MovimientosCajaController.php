@@ -154,9 +154,9 @@ class MovimientosCajaController extends ApiController
   public function geRegistroMovimientoBydate(Request $request)
   {
     $tmp_fecha = str_replace("/", "-", $request->input("fecha_desde"));
-    $fecha_desde = date("Y-m-d H:i:s", strtotime($tmp_fecha));
+    $fecha_desde = date("Y-m-d", strtotime($tmp_fecha));
     $tmp_fecha = str_replace("/", "-", $request->input("fecha_hasta"));
-    $fecha_hasta = date("Y-m-d H:i:s", strtotime($tmp_fecha));
+    $fecha_hasta = date("Y-m-d", strtotime($tmp_fecha));
 
     $horario = DB::select(
       DB::raw("SELECT mov_registro.id, mov_concepto_cuenta_id, descripcion, mov_cuenta_id , fecha_carga, mov_tipo_comprobante_id,

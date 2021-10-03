@@ -790,7 +790,7 @@ class FacturaElementosController extends ApiController
 
   public function cobrarMovimientoCaja(Request $request)
   {
-    $sector = $request->input("sector_cobro");
+    $sector = $request->input("sector");
     $factura_comprobante_id = 15;
 
     if ($sector === "MATRICULA") {
@@ -815,13 +815,13 @@ class FacturaElementosController extends ApiController
       "factura_concepto_id" => 3,
       "factura_documento_comprador_id" => 96,
       "categoria_iva" => "Consumidor Final",
-      "factura_documento" => $request->matricula,
+      "factura_documento" => $request->proveedor_cuit,
       "factura_obra_social" => "",
-      "factura_cliente" => $request->nombreyapellido,
+      "factura_cliente" => $request->proveedor_nombre,
       "factura_numero" => $_factura_numero,
-      "fecha" => $request->mat_fecha_pago,
-      "fecha_desde" => $request->mat_fecha_pago,
-      "fecha_hasta" => $request->mat_fecha_pago,
+      "fecha" => $request->fecha_carga,
+      "fecha_desde" => $request->fecha_carga,
+      "fecha_hasta" => $request->fecha_carga,
       "importe_gravado" => 0,
       "importe_exento_iva" => 0,
       "importe_iva" => 0,
@@ -830,30 +830,27 @@ class FacturaElementosController extends ApiController
       "modulo_gravado" => $sector,
     ]);
 
-    foreach ($request->reciboElectronico as $res) {
-      $res1 = DB::table("factura_renglon")->insertGetId([
-        "factura_id" => $factura_encabezado_id,
-        "descripcion" => $res["mat_descripcion"],
-        "cantidad" => 1,
-        "precio_unitario" => $res["mat_monto_cobrado"],
-        "alicuota_id" => 3,
-        "alicuota" => 0,
-        "iva" => 0,
-        "total_sin_iva" => $res["mat_monto_cobrado"],
-        "total_renglon" => $res["mat_monto_cobrado"],
-      ]);
-      // REALIZAR COBRO
+    $res1 = DB::table("factura_renglon")->insertGetId([
+      "factura_id" => $factura_encabezado_id,
+      "descripcion" => $request->reciboElectronicoCaja["descripcion"],
+      "cantidad" => 1,
+      "precio_unitario" => $request->reciboElectronicoCaja["total"],
+      "alicuota_id" => 3,
+      "alicuota" => 0,
+      "iva" => 0,
+      "total_sin_iva" => $request->reciboElectronicoCaja["total"],
+      "total_renglon" => $request->reciboElectronicoCaja["total"],
+    ]);
+    // REALIZAR COBRO
 
-      $res = DB::table("mov_registro")
-        ->where("id", $res["id"])
-        ->update([
-          "comprobante_numero" => $_factura_numero,
-          "mat_numero_recibo_id" => $factura_encabezado_id,
-          "factura_encabezado_id" => $_factura_numero,
-          "factura_numero" => $_factura_numero,
-          "id_usuario" => $request->usuario_id,
-        ]);
-    }
+    $res = DB::table("mov_registro")
+      ->where("id", $request->mov_registro_id)
+      ->update([
+        "comprobante_numero" => $_factura_numero,
+        "factura_numero" => $_factura_numero,
+        "factura_encabezado_id" => $factura_encabezado_id,
+        "usuario_id" => $request->usuario_id,
+      ]);
 
     return response()->json($_factura_numero, 201);
   }
