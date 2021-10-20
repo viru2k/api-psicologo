@@ -133,6 +133,10 @@ Route::group(["middleware" => "admin"], function () {
     "obra/social/habilitada",
     "ObraSocial\ObraSocialController@getObraSocialHabilitado"
   );
+  Route::name("obra-social")->get(
+    "obra/social/private/habilitada",
+    "ObraSocial\ObraSocialController@getObraSocialPrivateHabilitado"
+  );
   Route::name("obra-social")->put(
     "obra/social/{id}",
     "ObraSocial\ObraSocialController@putObraSocial"
@@ -150,8 +154,16 @@ Route::group(["middleware" => "admin"], function () {
     "ObraSocial\ObraSocialController@getConvenioByObraSocialHabilitado"
   );
   Route::name("obra-social")->get(
+    "obra/social/convenio/private/habilitada",
+    "ObraSocial\ObraSocialController@getConvenioPrivateByObraSocialHabilitado"
+  );
+  Route::name("obra-social")->get(
     "convenio/habilitada",
     "ObraSocial\ObraSocialController@getConvenioHabilitado"
+  );
+  Route::name("obra-social")->get(
+    "convenio/private/habilitada",
+    "ObraSocial\ObraSocialController@getConvenioPrivateHabilitado"
   );
   Route::name("convenio")->put(
     "convenio/{id}",
@@ -761,6 +773,7 @@ Route::name("facturacion-elementos")->get(
   "afip/elementos/categoria/iva",
   "Afip\FacturaElementosController@CategoriaIva"
 );
+
 Route::name("facturacion-elementos")->post(
   "afip/elementos/factura/nueva",
   "Afip\FacturaElementosController@crearFactura"

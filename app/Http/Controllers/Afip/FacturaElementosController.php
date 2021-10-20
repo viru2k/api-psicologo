@@ -676,7 +676,7 @@ class FacturaElementosController extends ApiController
         importe_iva, importe_total, cae, cae_vto, factura_punto_vta.punto_vta, factura_renglon.descripcion,factura_renglon.cantidad, factura_renglon.precio_unitario, 
         factura_renglon.alicuota, factura_renglon.alicuota_id, factura_renglon.iva, factura_renglon.total_sin_iva, factura_renglon.total_renglon, factura_comprobante.descripcion as factura_comprobante_descripcion 
         , factura_comprobante.letra, factura_comprobante.comprobante_codigo, factura_comprobante.id_interno , factura_concepto.descripcion as   factura_concepto_descripcion, factura_documento_comprador.descripcion as  factura_documento_comprador_descripcion
-        , CONCAT (medicos.apellido, ' ', medicos.nombre)  as nombreyapellido, factura_renglon.descripcion, cantidad, precio_unitario, alicuota_id, alicuota, iva, total_sin_iva, total_renglon , medicos.ing_brutos, medicos.cuit, medicos.fecha_alta_afip, medicos.domicilio, categoria_iva.categoria_iva
+        , CONCAT (medicos.apellido, ' ', medicos.nombre)  as nombreyapellido, factura_renglon.descripcion, cantidad, precio_unitario, alicuota_id, alicuota, iva, total_sin_iva, total_renglon , medicos.ing_brutos, medicos.cuit, medicos.fecha_alta_afip, medicos.domicilio, categoria_iva.categoria_iva, modulo_gravado, metodo_pago
         FROM factura_encabezado,factura_punto_vta, factura_renglon, factura_comprobante, factura_concepto, factura_documento_comprador, medicos , categoria_iva
         WHERE  factura_encabezado.id = factura_renglon.factura_id AND factura_encabezado.factura_pto_vta_id = factura_punto_vta.id AND factura_encabezado.medico_id = medicos.id  
         AND  factura_encabezado.factura_comprobante_id = factura_comprobante.id
@@ -686,7 +686,53 @@ class FacturaElementosController extends ApiController
          "
       )
     );
-    return $factura;
+
+    $matricula = DB::select(
+      DB::raw(
+        "SELECT id_pago_historico, mat_matricula, CONCAT(mat_matricula.mat_apellido, ' ' , mat_matricula.mat_nombre) AS mat_nombreyapellido, mat_fecha_pago, mat_fecha_vencimiento, mat_pago_historico.mat_monto, mat_monto_cobrado, mat_interes, mat_pago_historico.mat_descripcion,
+    mat_num_cuota, mat_id_plan, mat_numero_comprobante, mat_tipo_pago, mat_estado, id_usuario ,
+     mat_pago_historico.id_concepto, mat_concepto , nombreyapellido, id_liquidacion_detalle, mat_numero_recibo, mat_numero_recibo_id
+    FROM `mat_pago_historico`, mat_concepto, mat_matricula  , users
+    WHERE  mat_pago_historico.mat_matricula = mat_matricula.mat_matricula_psicologo
+    AND mat_concepto.id_concepto = mat_pago_historico.id_concepto
+    AND users.id = mat_pago_historico.id_usuario
+    AND mat_numero_recibo_id  =   " .
+          $request->input("factura_numero") .
+          "
+         "
+      )
+    );
+
+    $cobro = DB::select(
+      DB::raw(
+        "SELECT mov_registro.id, mov_concepto_cuenta_id, descripcion, mov_cuenta_id , fecha_carga, mov_tipo_comprobante_id,
+         comprobante_numero, tiene_enlace_factura, mov_tipo_moneda_id,  mov_registro.importe,  mov_registro.cotizacion,
+         mov_registro.total, factura_encabezado_id, paciente_id, proveedor_id, proveedor_nombre, 
+        proveedor_cuit, proveedor_direccion , 
+       factura_encabezado.factura_pto_vta_id, factura_encabezado.medico_id, factura_encabezado.factura_comprobante_id, 
+        factura_encabezado.factura_concepto_id, concepto_cuenta, 
+        cuenta_nombre, movimiento_tipo, tipo_comprobante ,tipo_moneda , cierre_caja_id, mov_registro.usuario_id, mov_registro.factura_numero
+        FROM mov_registro 
+        LEFT JOIN paciente_proveedor ON mov_registro.proveedor_id = paciente_proveedor.id        
+        LEFT JOIN factura_encabezado ON mov_registro.factura_encabezado_id = factura_encabezado.id ,
+        mov_concepto_cuenta, mov_cuenta, mov_tipo_comprobante, mov_tipo_moneda 
+        WHERE mov_registro.mov_concepto_cuenta_id = mov_concepto_cuenta.id 
+        AND mov_registro.mov_cuenta_id = mov_cuenta.id 
+        AND mov_registro.mov_tipo_comprobante_id = mov_tipo_comprobante.id 
+        AND mov_registro.mov_tipo_moneda_id = mov_tipo_moneda.id
+        AND factura_encabezado.id  =   " .
+          $request->input("factura_numero") .
+          "
+    "
+      )
+    );
+
+    return [
+      "factura" => $factura,
+      "matricula" => $matricula,
+      "cobro" => $cobro,
+    ];
+    //  return $matricula;
   }
 
   public function getLibroIva(Request $request)
