@@ -541,18 +541,36 @@ class FacturaElementosController extends ApiController
     $fecha_desde = date("Y-m-d", strtotime($tmp_fecha));
     $tmp_fecha = str_replace("/", "-", $request->input("fecha_hasta"));
     $fecha_hasta = date("Y-m-d", strtotime($tmp_fecha));
+    $filtro = $request->input("filtro");
 
-    $res = DB::select(
-      DB::raw(
-        "SELECT factura_encabezado.id, factura_pto_vta_id, medico_id, factura_concepto_id, factura_encabezado.factura_documento_comprador_id, factura_documento, factura_cliente, factura_numero, fecha, fecha_desde, fecha_hasta, importe_gravado, importe_exento_iva, importe_iva, importe_total, cae, cae_vto , factura_punto_vta.punto_vta, factura_comprobante.descripcion, factura_comprobante.letra, factura_comprobante.comprobante_codigo , factura_comprobante.id as factura_comprobante_id, factura_documento_comprador.descripcion as factura_documento_comprador_descripcion , CONCAT (medicos.apellido, ' ', medicos.nombre)  as nombreyapellido
-        FROM factura_encabezado , factura_punto_vta, factura_comprobante, factura_concepto, factura_documento_comprador,  medicos 
-        WHERE factura_punto_vta.id = factura_encabezado.factura_pto_vta_id AND factura_encabezado.factura_comprobante_id = factura_comprobante.id AND factura_encabezado.factura_concepto_id = factura_concepto.id AND factura_encabezado.factura_documento_comprador_id =  factura_documento_comprador.id AND factura_encabezado.medico_id = medicos.id  AND fecha BETWEEN '" .
-          $fecha_desde .
-          "' AND '" .
-          $fecha_hasta .
-          "' ORDER BY fecha DESC"
-      )
-    );
+    if ($filtro === "MATRICULA") {
+      $res = DB::select(
+        DB::raw(
+          "SELECT factura_encabezado.id, factura_pto_vta_id, medico_id, factura_concepto_id, factura_encabezado.factura_documento_comprador_id, factura_documento, factura_cliente, factura_numero, fecha, fecha_desde, fecha_hasta, importe_gravado, importe_exento_iva, importe_iva, importe_total, cae, cae_vto , factura_punto_vta.punto_vta, factura_comprobante.descripcion, factura_comprobante.letra, factura_comprobante.comprobante_codigo , factura_comprobante.id as factura_comprobante_id, factura_documento_comprador.descripcion as factura_documento_comprador_descripcion , CONCAT (medicos.apellido, ' ', medicos.nombre)  as nombreyapellido , users.nombreyapellido AS creado, modulo_gravado, metodo_pago, mat_pago_historico.mat_tipo_pago 
+          FROM factura_encabezado , factura_punto_vta, factura_comprobante, factura_concepto, factura_documento_comprador,  medicos, users , mat_pago_historico
+          WHERE factura_punto_vta.id = factura_encabezado.factura_pto_vta_id AND factura_encabezado.factura_comprobante_id = factura_comprobante.id AND factura_encabezado.usuario_id = users.id AND factura_encabezado.factura_concepto_id = factura_concepto.id AND factura_encabezado.factura_documento_comprador_id =  factura_documento_comprador.id AND mat_pago_historico.mat_numero_recibo_id = factura_encabezado.id AND modulo_gravado = '" .
+            $filtro .
+            "' AND  factura_encabezado.medico_id = medicos.id AND fecha BETWEEN '" .
+            $fecha_desde .
+            "' AND '" .
+            $fecha_hasta .
+            "' GROUP BY factura_encabezado.id ORDER BY fecha DESC"
+        )
+      );
+    } else {
+      $res = DB::select(
+        DB::raw(
+          "SELECT factura_encabezado.id, factura_pto_vta_id, medico_id, factura_concepto_id, factura_encabezado.factura_documento_comprador_id, factura_documento, factura_cliente, factura_numero, fecha, fecha_desde, fecha_hasta, importe_gravado, importe_exento_iva, importe_iva, importe_total, cae, cae_vto , factura_punto_vta.punto_vta, factura_comprobante.descripcion, factura_comprobante.letra, factura_comprobante.comprobante_codigo , factura_comprobante.id as factura_comprobante_id, factura_documento_comprador.descripcion as factura_documento_comprador_descripcion , CONCAT (medicos.apellido, ' ', medicos.nombre)  as nombreyapellido , users.nombreyapellido AS creado, modulo_gravado, metodo_pago
+            FROM factura_encabezado , factura_punto_vta, factura_comprobante, factura_concepto, factura_documento_comprador,  medicos, users 
+            WHERE factura_punto_vta.id = factura_encabezado.factura_pto_vta_id AND factura_encabezado.factura_comprobante_id = factura_comprobante.id AND factura_encabezado.usuario_id = users.id AND factura_encabezado.factura_concepto_id = factura_concepto.id AND factura_encabezado.factura_documento_comprador_id =  factura_documento_comprador.id AND factura_encabezado.medico_id = medicos.id AND fecha BETWEEN '" .
+            $fecha_desde .
+            "' AND '" .
+            $fecha_hasta .
+            "' ORDER BY fecha DESC"
+        )
+      );
+    }
+
     return response()->json($res, 201);
   }
 
