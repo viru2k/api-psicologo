@@ -507,6 +507,27 @@ Route::group(["middleware" => "admin"], function () {
     "movimiento/caja/{id}",
     "MovimientosCaja\MovimientosCajaController@putMovimientoCaja"
   );
+
+  // VERSION 2
+
+  Route::name("movimiento-caja")->get(
+    "v2/movimiento/concepto/cuentas",
+    "V2\MovimientosCaja\MovimientosCajaV2Controller@getConceptoCuentas"
+  );
+
+  Route::name("movimiento-caja")->get(
+    "v2/movimiento/registro/by/date",
+    "V2\MovimientosCaja\MovimientosCajaV2Controller@geRegistroMovimientoBydate"
+  );
+
+  Route::name("movimiento-caja")->post(
+    "v2/movimiento/caja",
+    "V2\MovimientosCaja\MovimientosCajaV2Controller@setMovimientoCaja"
+  );
+  Route::name("movimiento-caja")->put(
+    "v2/movimiento/caja/{id}",
+    "V2\MovimientosCaja\MovimientosCajaV2Controller@putMovimientoCaja"
+  );
   /* -------------------------------------------------------------------------- */
   /*                                  PROVEEDOR                                 */
   /* -------------------------------------------------------------------------- */

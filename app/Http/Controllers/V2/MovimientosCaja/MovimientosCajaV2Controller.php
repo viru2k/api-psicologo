@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\MovimientosCaja;
+namespace App\Http\Controllers\V2\MovimientosCaja;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\ApiController;
@@ -12,7 +12,7 @@ use App\models\ConceptoTipoComprobante;
 use App\models\Cuenta;
 use App\models\Proveedor;
 
-class MovimientosCajaController extends ApiController
+class MovimientosCajaV2Controller extends ApiController
 {
   public function getConceptoMonedas()
   {
@@ -161,13 +161,13 @@ class MovimientosCajaController extends ApiController
     $horario = DB::select(
       DB::raw("SELECT mov_registro.id, mov_concepto_cuenta_id, descripcion, mov_cuenta_id , fecha_carga, mov_tipo_comprobante_id,
          comprobante_numero, tiene_enlace_factura, mov_tipo_moneda_id,  mov_registro.importe,  mov_registro.cotizacion,
-         mov_registro.total, factura_encabezado_id, paciente_id, proveedor_id, proveedor_nombre, proveedor_registro_nombre
+         mov_registro.total, factura_encabezado_id, paciente_id, proveedor_nombre,  proveedor_registro_nombre,
         proveedor_cuit, proveedor_direccion , 
        factura_encabezado.factura_pto_vta_id, factura_encabezado.medico_id, factura_encabezado.factura_comprobante_id, 
         factura_encabezado.factura_concepto_id, concepto_cuenta, 
         cuenta_nombre, movimiento_tipo, tipo_comprobante ,tipo_moneda , cierre_caja_id, mov_registro.usuario_id, mov_registro.factura_numero
-        FROM mov_registro 
-        LEFT JOIN paciente_proveedor ON mov_registro.proveedor_id = paciente_proveedor.id        
+        FROM mov_registro     
+        LEFT JOIN paciente_proveedor ON mov_registro.proveedor_id = paciente_proveedor.id  
         LEFT JOIN factura_encabezado ON mov_registro.factura_encabezado_id = factura_encabezado.id ,
         mov_concepto_cuenta, mov_cuenta, mov_tipo_comprobante, mov_tipo_moneda 
         WHERE mov_registro.mov_concepto_cuenta_id = mov_concepto_cuenta.id 
@@ -204,7 +204,8 @@ class MovimientosCajaController extends ApiController
         $request->liq_liquidacion_distribucion_id,
       "factura_encabezado_id" => $request->factura_encabezado_id,
       "paciente_id" => $request->paciente_id,
-      "proveedor_id" => $request->proveedor_id,
+      "proveedor_id" => 20, // REPRESENTA A DESCONOCIDO
+      "proveedor_registro_nombre" => $request->proveedor_registro_nombre,
       "created_at" => date("Y-m-d H:i:s"),
       "updated_at" => date("Y-m-d H:i:s"),
     ]);
@@ -234,7 +235,7 @@ class MovimientosCajaController extends ApiController
           $request["liq_liquidacion_distribucion_id"],
         "factura_encabezado_id" => $request["factura_encabezado_id"],
         "paciente_id" => $request["paciente_id"],
-        "proveedor_id" => $request["proveedor_id"],
+        "proveedor_registro_nombre" => $request["proveedor_registro_nombre"],
         "updated_at" => date("Y-m-d H:i:s"),
       ]);
 
