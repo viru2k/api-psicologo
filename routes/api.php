@@ -645,10 +645,26 @@ Route::name("turnos-gestion")->get(
   "multimedia/ordenado",
   "Multimedia\MultimediaController@getMultimedia"
 );
-Route::name("multimedia")->delete(
-  "multimedia/{id}",
-  "Multimedia\MultimediaController@delMultimedia"
+Route::name("multimedia")->post(
+  "/multimedia/remover/privado/",
+  "Multimedia\MultimediaController@delMultimediaPrivado"
 );
+
+Route::name("multimedia")->post(
+  "/multimedia/remover/publico/",
+  "Multimedia\MultimediaController@delMultimediaPublico"
+);
+
+Route::name("archivos")->post(
+  "multimedia/noticia",
+  "Multimedia\MultimediaController@UploadNew"
+);
+
+Route::name("archivos")->post(
+  "multimedia/noticia/body",
+  "Multimedia\MultimediaController@UploadNewBody"
+);
+
 
 /* -------------------------------------------------------------------------- */
 /*                                  NOTICIAS                                  */
@@ -874,7 +890,7 @@ Route::name("user-info")->delete(
 );
 Route::resource("user", "User\UserController");
 
-/********************* */
+/********************* */ 
 
 /** FILE MANAGER **/
 Route::name("archivos")->post(
